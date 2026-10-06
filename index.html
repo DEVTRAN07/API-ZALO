@@ -291,7 +291,7 @@ details.catsec>summary .tag{margin-left:auto}
 
 <!-- panel_export: địa chỉ bot nhúng sẵn (người dùng đổi được ngay
      trên trang đăng nhập; lựa chọn của họ luôn được ưu tiên hơn). -->
-<script>window.__ZB_API__ = "https://rod-delivered-prerequisite-lisa.trycloudflare.com";</script>
+<script>window.__ZB_API__ = "";</script>
 </head>
 <body>
 
@@ -307,7 +307,7 @@ details.catsec>summary .tag{margin-left:auto}
     <input id="p" class="i" type="password" autocomplete="current-password" placeholder="••••••••">
     <label class="f" for="srv" style="margin-top:12px">Địa chỉ bot
       <span class="hint">— bỏ trống nếu mở panel ngay trên máy chạy bot</span></label>
-    <input id="srv" class="i mono" placeholder="https://ten-ngau-nhien.trycloudflare.com"
+    <input id="srv" class="i mono" placeholder="http://192.168.x.x:5000"
       style="font-size:12.5px">
     <div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">
       <label class="row" style="gap:6px;font-size:12.5px">
@@ -583,7 +583,7 @@ const NAV = [
   ['welcome', '👋', 'Welcome',    'Card chào mừng'],
   ['cmds',    '⌘', 'Lệnh',       'Bật / tắt lệnh'],
   ['mybot',   '🤖', 'Bot con',    'Sub-bot & gia hạn'],
-  ['web',     '🌐', 'Web & Cloudflare', 'Link panel, QR, tunnel'],
+  ['web',     '🌐', 'Web & Panel', 'Link Pages, LAN, QR'],
   ['log',     '≡', 'Log',        'Trực tiếp từ bot'],
   ['sys',     '⚙', 'Hệ thống',   'Tiến trình & tài nguyên'],
 ];
@@ -1642,55 +1642,41 @@ function logPause() {
 
 V.web = async () => {
   const d = await api('/api/v4/web');
-  const up = (s) => { const h=Math.floor(s/3600), m=Math.floor(s%3600/60);
-    return h ? `${h}h ${m}m` : m ? `${m}m ${s%60}s` : `${s}s`; };
-  if (d.starting) setTimeout(() => { if (S.view === 'web') draw(); }, 3000);
   return `
     <div class="grid g4" style="margin-bottom:14px">
+      <div class="card"><h3>GitHub Pages (24/7)</h3>
+        <div class="mono" style="font-size:13px;word-break:break-all">
+          <a href="${esc(d.pages_url)}" target="_blank">${esc(d.pages_url)}</a></div>
+        <div class="hint">luôn mở được — bot tắt chỉ hiện "ngoại tuyến"</div>
+        <div class="row" style="margin-top:10px">
+          <a class="btn pri" href="${esc(d.pages_url)}" target="_blank">↗ Mở panel</a>
+          <button class="btn" data-url="${esc(d.lan_url)}"
+            onclick="useApiBase(this.dataset.url);toast('Đã dùng '+this.dataset.url,'g')">📌 Dùng LAN này</button></div></div>
       <div class="card"><h3>Trong mạng LAN</h3>
         <div class="mono" style="font-size:14px;word-break:break-all">
           <a href="${esc(d.lan_url)}" target="_blank">${esc(d.lan_url)}</a></div>
         <div class="hint">dùng khi điện thoại cùng WiFi</div></div>
-      <div class="card"><h3>Cloudflare</h3>
-        ${d.url ? `<div class="mono" style="font-size:14px;word-break:break-all">
-            <a href="${esc(d.url)}" target="_blank">${esc(d.url)}</a></div>
-          <div class="hint">🟢 chạy ${esc(up(d.uptime))}</div>`
-        : `<div class="stat" style="font-size:18px">chưa mở</div>
-          <div class="hint">mở để vào panel từ ngoài mạng</div>`}</div>
-      <div class="card"><h3>cloudflared</h3>
-        <div class="stat" style="font-size:18px">${d.installed ? '✅ có' : '❌ chưa'}</div>
-        <div class="hint">${esc(d.version || 'chưa cài binary')}</div></div>
+      <div class="card"><h3>Điện thoại</h3>
+        <div class="stat" style="font-size:18px">⌘web qr</div>
+        <div class="hint">gõ trong Zalo — bot gửi QR quét là vào thẳng panel kèm địa chỉ bot</div></div>
       <div class="card"><h3>API v4</h3><div class="stat">${num(d.endpoints)}<small> endpoint</small></div>
         <div class="hint">cổng ${num(d.port)} · SPA một file</div></div>
     </div>
-    <div class="card"><h3>Điều khiển</h3>
-      <div class="row">
-        <button class="btn" onclick="webTunnel('on')" ${d.running?'disabled':''}>☁️ Mở tunnel</button>
-        <button class="btn dgr" onclick="webTunnel('off')" ${d.running?'':'disabled'}>⛔ Tắt tunnel</button>
-        <button class="btn" onclick="webTunnel('install')" ${d.installed?'disabled':''}>⬇️ Cài cloudflared</button>
-        <button class="btn" onclick="webQr()">🔗 QR cho điện thoại</button></div>
-      <div class="hint" style="margin-top:10px">
-        Mở tunnel là đưa panel ra Internet: ai có link đều tới được trang đăng nhập.
-        ${d.starting ? '<b>Đang mở tunnel…</b> panel tự cập nhật.' : ''}
-        ${d.log ? `<br>Log: <span class="mono">${esc(d.log)}</span>` : ''}</div>
-    </div>
-    ${d.url ? `<div class="card" style="margin-top:14px"><h3>Mở panel</h3>
-      <div class="row"><a class="btn pri" href="${esc(d.url)}" target="_blank">↗ Cloudflare panel</a></div>
-      <div class="hint" style="margin-top:8px">Kết nối ngoài mạng bằng Cloudflare link. <span class="mono">⌘web qr</span> nhận QR đăng nhập khi gõ trong Zalo.</div></div>` : ''}
-    <div class="card" style="margin-top:14px"><h3>Địa chỉ bot của panel</h3>
+    <div class="card"><h3>Địa chỉ bot của panel</h3>
       <div class="mono" style="font-size:13.5px;word-break:break-all">${esc(S.apiBase || '(rỗng = panel đang chạy ngay trên máy bot)')}</div>
       <div class="row" style="margin-top:10px">
-        ${d.url ? `<button class="btn" data-url="${esc(d.url)}"
-          onclick="useApiBase(this.dataset.url)">📌 Dùng link Cloudflare</button>` : ''}
+        <button class="btn" data-url="${esc(d.lan_url)}"
+          onclick="useApiBase(this.dataset.url)">📌 Dùng link LAN</button>
         <button class="btn" onclick="useApiBase('')">🏠 Dùng cùng máy</button>
         <button class="btn" onclick="setApiBase(S.apiBase);toast('Đã ghim địa chỉ này','g')">💾 Ghim lại</button></div>
       <div class="hint" style="margin-top:10px">
-        Panel có thể được host TĨNH ở nơi khác (GitHub Pages, Cloudflare Pages…) rồi trỏ về bot
-        qua địa chỉ này — mở bằng <span class="mono">?api=https://…</span> cũng được, panel tự nhớ.
-        Điều kiện: bot phải đang mở tunnel thì trang ngoài mới tới được.
-        <br><b>Lưu ý:</b> link <span class="mono">raw.githubusercontent.com</span> KHÔNG dùng để mở panel được —
-        GitHub trả về dạng văn bản thuần nên trình duyệt hiện source, phải host qua Pages hoặc dịch vụ tĩnh khác.
-      </div></div>`;
+        Panel tĩnh ở GitHub Pages gọi API về máy chạy bot qua địa chỉ này —
+        mở bằng <span class="mono">?api=…</span> cũng được, panel tự nhớ.
+        Trong Zalo gõ <span class="mono">⌘web qr</span> để nhận QR mở thẳng
+        (link Pages + địa chỉ bot).
+        <br><b>Lưu ý:</b> link <span class="mono">raw.githubusercontent.com</span> KHÔNG dùng
+        để mở panel được — GitHub trả về dạng văn bản thuần nên trình duyệt hiện source;
+        panel nằm ở địa chỉ Pages ở trên.</div></div>`;
 };
 
 /* Đổi địa chỉ bot ngay trong lúc đang chạy (dùng cho panel host tĩnh). */
@@ -1700,17 +1686,6 @@ function useApiBase(url) {
   toast(url ? `✅ Gọi bot qua ${S.apiBase}` : '🏠 Gọi bot ở cùng máy', 'g');
   draw();
 }
-
-async function webTunnel(action) {
-  const label = { on: 'mở tunnel', off: 'tắt tunnel', install: 'cài cloudflared' }[action];
-  toast(`Đang ${label}…`, '');
-  try {
-    const d = await api('/api/v4/web/tunnel', { method: 'POST', body: { action } });
-    toast(d.message || 'Xong', d.ok === false ? 'r' : 'g');
-  } catch (e) { toast(e.message, 'r'); }
-  draw();
-}
-function webQr() { toast('Trong Zalo gõ: ⌘web qr (bot gửi ảnh QR đăng nhập)', ''); }
 
 V.sys = async () => {
   const d = await api('/api/system');
@@ -2153,7 +2128,6 @@ window.wUpload = wUpload; window.wClearAv = wClearAv; window.wRandom = wRandom;
 window.wSend = wSend; window.forceGroups = forceGroups;
 window.wState = wState; window.wToggle = wToggle;
 window.toggleCat = toggleCat; window.toggleAllCats = toggleAllCats;
-window.webTunnel = webTunnel; window.webQr = webQr;
 window.useApiBase = useApiBase;
 window.actBot = actBot; window.delBot = delBot; window.giahanBot = giahanBot;
 window.addBotModal = addBotModal; window.ttlSave = ttlSave;
