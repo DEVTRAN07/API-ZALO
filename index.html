@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="aurora">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZaloBot · Control Deck</title>
+<style>
+/* ── AURORA DECK · design tokens ─────────────────────────────────── */
+:root{
+  --bg:#070a14; --bg2:#0b1020; --card:rgba(255,255,255,.035);
+  --card-h:rgba(255,255,255,.06); --line:rgba(255,255,255,.09);
+  --tx:#e8ecf8; --tx2:#9aa6c4; --tx3:#5f6b8a;
+  --az:#4d8cff; --vi:#9b6cff; --cy:#38e1d0; --gr:#3ddc84;
+  --am:#ffb43d; --rd:#ff5c72;
+  --r:16px; --r2:11px; --sh:0 18px 50px -22px rgba(0,0,0,.9);
+  --ff:'Inter',-apple-system,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+  --fm:'SFMono-Regular',ui-monospace,'JetBrains Mono',Menlo,monospace;
+}
+[data-theme="day"]{
+  --bg:#f4f6fc; --bg2:#ffffff; --card:#ffffff; --card-h:#ffffff;
+  --line:rgba(16,24,48,.11); --tx:#111a33; --tx2:#5a6483; --tx3:#8b94ad;
+  --sh:0 14px 40px -24px rgba(16,24,48,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(1100px 620px at 88% -12%,rgba(155,108,255,.18),transparent 60%),
+    radial-gradient(900px 520px at 8% 108%,rgba(56,225,208,.13),transparent 60%),
+    var(--bg);
+  color:var(--tx);font-family:var(--ff);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--az);text-decoration:none}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:rgba(140,155,200,.28);border-radius:9px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ── LOGIN ───────────────────────────────────────────────────────── */
+#login{position:fixed;inset:0;display:grid;place-items:center;z-index:60;
+  background:radial-gradient(800px 500px at 50% 0%,rgba(77,140,255,.16),transparent 65%),var(--bg)}
+.box{width:min(400px,92vw);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid var(--line);border-radius:22px;padding:32px 28px;box-shadow:var(--sh)}
+.mark{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:24px;
+  background:linear-gradient(135deg,var(--az),var(--vi));box-shadow:0 10px 30px -10px var(--az)}
+.box h1{font-size:20px;margin:16px 0 4px;letter-spacing:-.3px}
+.box p{color:var(--tx2);font-size:13px;margin-bottom:20px}
+label.f{display:block;font-size:11.5px;color:var(--tx3);text-transform:uppercase;
+  letter-spacing:.09em;margin:14px 0 6px;font-weight:600}
+input.i,select.i,textarea.i{width:100%;background:rgba(0,0,0,.28);border:1px solid var(--line);
+  border-radius:var(--r2);padding:11px 13px;transition:.16s;outline:0}
+[data-theme="day"] input.i,[data-theme="day"] select.i{background:#fff;border-color:rgba(16,24,48,.16)}
+input.i:focus,select.i:focus,textarea.i:focus{border-color:var(--az);
+  box-shadow:0 0 0 3px rgba(77,140,255,.22);background:rgba(0,0,0,.4)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:var(--r2);
+  background:var(--card);border:1px solid var(--line);font-weight:600;font-size:13px;transition:.16s}
+.btn:hover{background:var(--card-h);transform:translateY(-1px)}
+.btn:active{transform:none}
+.btn.pri{background:linear-gradient(135deg,var(--az),var(--vi));border-color:transparent;color:#fff;
+  box-shadow:0 12px 26px -14px var(--az)}
+.btn.dgr{color:var(--rd);border-color:rgba(255,92,114,.35)}
+.btn.ok{color:var(--gr);border-color:rgba(61,220,132,.35)}
+.btn.full{width:100%;justify-content:center;padding:12px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.err{color:var(--rd);font-size:12.5px;margin-top:12px;min-height:17px}
+
+/* ── SHELL ───────────────────────────────────────────────────────── */
+#app{display:none;min-height:100vh}
+#app.on{display:grid;grid-template-columns:242px 1fr}
+aside{border-right:1px solid var(--line);padding:20px 14px;position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;gap:5px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent)}
+.brand{display:flex;align-items:center;gap:10px;padding:0 6px 16px;margin-bottom:8px;
+  border-bottom:1px solid var(--line)}
+.brand .mark{width:34px;height:34px;border-radius:10px;font-size:16px}
+.brand b{font-size:14.5px;letter-spacing:-.2px}
+.brand small{display:block;color:var(--tx3);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}
+nav{display:flex;flex-direction:column;gap:3px;overflow-y:auto;flex:1}
+.nv{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;color:var(--tx2);
+  font-weight:550;font-size:13.2px;transition:.15s;text-align:left;width:100%}
+.nv:hover{background:var(--card);color:var(--tx)}
+.nv.on{background:linear-gradient(135deg,rgba(77,140,255,.22),rgba(155,108,255,.16));color:var(--tx);
+  box-shadow:inset 2px 0 0 var(--az)}
+.nv .ic{width:19px;text-align:center;font-size:14.5px}
+.nv .bdg{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:6px;background:rgba(255,255,255,.09);
+  color:var(--tx2);font-family:var(--fm)}
+.nv .bdg.w{background:rgba(255,180,61,.2);color:var(--am)}
+.nv .bdg.d{background:rgba(255,92,114,.2);color:var(--rd)}
+.foot{padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--tx3)}
+.who{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.who .av{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--vi),var(--az));
+  display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+main{padding:22px 26px 60px;max-width:1500px}
+
+/* ── TOPBAR ──────────────────────────────────────────────────────── */
+.top{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.top h2{font-size:21px;letter-spacing:-.4px;font-weight:650}
+.top .sub{color:var(--tx3);font-size:12.5px}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:99px;
+  background:var(--card);border:1px solid var(--line);font-size:12px;font-weight:600}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--tx3)}
+.dot.g{background:var(--gr);box-shadow:0 0 9px var(--gr)}
+.dot.r{background:var(--rd);box-shadow:0 0 9px var(--rd)}
+.dot.a{background:var(--am)}
+
+/* ── CARDS ───────────────────────────────────────────────────────── */
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(196px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:17px 18px;
+  backdrop-filter:blur(9px);box-shadow:var(--sh)}
+.card h3{font-size:12.5px;color:var(--tx3);text-transform:uppercase;letter-spacing:.09em;
+  font-weight:650;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.stat{font-size:27px;font-weight:700;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.stat small{font-size:13px;color:var(--tx3);font-weight:500;letter-spacing:0}
+.hint{color:var(--tx3);font-size:11.8px;margin-top:5px}
+.bar{height:7px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:11px}
+.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--az),var(--cy))}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:var(--r2);padding:13px}
+.tile .k{font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.tile .v{font-size:19px;font-weight:680;margin-top:3px;font-variant-numeric:tabular-nums}
+
+/* ── TABLE ───────────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10.8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;
+  padding:7px 9px;border-bottom:1px solid var(--line);font-weight:650;white-space:nowrap}
+td{padding:9px;border-bottom:1px solid rgba(255,255,255,.045);font-size:13px;vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.022)}
+.mono{font-family:var(--fm);font-size:12.3px}
+.num{font-variant-numeric:tabular-nums;text-align:right;font-family:var(--fm)}
+.tag{display:inline-block;padding:2px 8px;border-radius:7px;font-size:11px;font-weight:650;
+  background:rgba(255,255,255,.08);color:var(--tx2)}
+/* công tắc bật/tắt lệnh — thay cho checkbox cũ */
+.swt{position:relative;width:44px;height:24px;border-radius:99px;flex:none;
+  background:rgba(255,255,255,.13);border:1px solid var(--line);transition:.18s}
+.swt i{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;
+  transition:.18s;box-shadow:0 2px 7px rgba(0,0,0,.45)}
+.swt.on{background:linear-gradient(135deg,var(--gr),var(--cy));border-color:transparent}
+.swt.on i{left:23px}
+.tag.g{background:rgba(61,220,132,.16);color:var(--gr)}
+.tag.a{background:rgba(255,180,61,.16);color:var(--am)}
+.tag.r{background:rgba(255,92,114,.16);color:var(--rd)}
+.tag.b{background:rgba(77,140,255,.16);color:var(--az)}
+/* tag của bảng Lệnh: mỗi loại một màu để nhìn là hiểu ngay.
+   Trước đây dòng nào cũng bị dán nhãn đỏ "user" — nhìn như lệnh lỗi. */
+.tag.o{background:rgba(255,214,102,.18);color:#ffd666}
+.tag.m{background:rgba(155,108,255,.18);color:#b18cff}
+.tag.n{background:rgba(255,255,255,.08);color:var(--tx3)}
+.alert{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;border-radius:var(--r2);
+  border:1px solid rgba(255,180,61,.32);background:rgba(255,180,61,.09);margin-bottom:14px;font-size:13px}
+.alert.r{border-color:rgba(255,92,114,.35);background:rgba(255,92,114,.09)}
+.alert b{display:block;margin-bottom:2px}
+
+/* ── THEME GALLERY ───────────────────────────────────────────────── */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.th{background:rgba(0,0,0,.24);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  transition:.16s;text-align:left}
+.th:hover{border-color:var(--az);transform:translateY(-2px)}
+.th.on{border-color:var(--vi);box-shadow:0 0 0 2px rgba(155,108,255,.3)}
+.th img{width:100%;height:96px;object-fit:cover;display:block;background:#0a0f1e}
+.th .nm{padding:8px 10px;font-size:12.4px;font-weight:650;display:flex;justify-content:space-between;
+  align-items:center;gap:6px}
+.sw{width:9px;height:9px;border-radius:50%;flex:none}
+/* ── MOBILE: thanh tác vụ dưới màn hình (kiểu app Zalo) ──────────
+   Trên điện thoại, sidebar bị giấu sau nút ☰. Thanh này cho truy cập
+   1 chạm: Trang chủ · Lệnh · Bot con · Log · Hệ thống.
+   Quy tắc gốc đứng TRƯỚC media query để không đè mất (bài học #burger). */
+.mtab{display:none}
+@media(max-width:900px){
+  .mtab{display:flex;flex-direction:row;align-items:center;justify-content:space-between;
+    gap:2px;overflow:visible;
+    position:fixed;left:10px;right:10px;bottom:10px;z-index:60;
+    background:rgba(26,26,30,.97);border:1px solid var(--line);
+    border-radius:27px;padding:7px 9px;box-shadow:0 12px 34px rgba(0,0,0,.5);
+    backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+  .mbtn{flex:1;display:flex;align-items:center;justify-content:center;position:relative;
+    background:none;border:0;color:var(--tx3);padding:7px 0;border-radius:19px;
+    cursor:pointer;transition:.15s}
+  .mbtn svg{width:24px;height:24px;display:block}
+  .mbtn.on{color:#fff;background:rgba(255,255,255,.12)}
+  .mbdg{position:absolute;top:-1px;right:calc(50% - 26px);min-width:18px;height:18px;
+    border-radius:9px;background:#ff4157;color:#fff;font-size:10.5px;font-weight:800;
+    display:none;place-items:center;padding:0 4px;line-height:1}
+  .mbdg.on{display:grid}
+}
+
+/* ── BOT CON: card từng bot (kiểu ảnh người dùng gửi) ──────────── */
+.botcard{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--line);
+  border-radius:14px;background:rgba(255,255,255,.022);margin-bottom:10px}
+.botcard:hover{border-color:rgba(77,140,255,.35);background:rgba(77,140,255,.05)}
+.bav{width:46px;height:46px;border-radius:50%;flex:0 0 46px;display:grid;place-items:center;
+  font-weight:800;font-size:17px;color:#12182b;
+  background:linear-gradient(135deg,#7ee0ff,#8fb0ff 55%,#c39bff)}
+.bav.main{background:linear-gradient(135deg,#ffe08a,#ffb763 60%,#ff8ac2);font-size:20px}
+/* Avatar thật: phủ kín vòng tròn, nền gradient chỉ hiện khi ảnh hỏng/lỗi */
+.bav img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;
+  background:linear-gradient(135deg,#ffe08a,#ffb763 60%,#ff8ac2)}
+.bmain{flex:1;min-width:0}
+.bhead{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.bn{font-size:15px;font-weight:800}
+.bmeta{display:flex;gap:14px;flex-wrap:wrap;margin-top:5px;font-size:12.4px;color:var(--tx2)}
+.bacts{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+
+/* ── LOG ─────────────────────────────────────────────────────────── */
+.log{background:#05080f;border:1px solid var(--line);border-radius:var(--r2);padding:12px;
+  height:min(58vh,520px);overflow-y:auto;font-family:var(--fm);font-size:12.2px;line-height:1.65}
+.ln{display:flex;gap:9px;padding:1.5px 0;border-bottom:1px solid rgba(255,255,255,.028)}
+.ln .t{color:var(--tx3);flex:none}
+.ln .l{flex:none;font-weight:700;width:52px}
+.ln.ok .l{color:var(--gr)} .ln.err .l{color:var(--rd)} .ln.warn .l{color:var(--am)}
+.ln.info .l{color:var(--az)} .ln .m{word-break:break-word}
+
+/* ── MISC ────────────────────────────────────────────────────────── */
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.sk{background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.1),rgba(255,255,255,.05));
+  background-size:220% 100%;animation:sh 1.25s infinite;border-radius:8px;height:15px}
+@keyframes sh{0%{background-position:120% 0}100%{background-position:-120% 0}}
+#toast{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:9px;z-index:80}
+.tst{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--az);
+  padding:11px 15px;border-radius:10px;box-shadow:var(--sh);font-size:13px;animation:in .22s;max-width:330px}
+.tst.g{border-left-color:var(--gr)} .tst.r{border-left-color:var(--rd)} .tst.a{border-left-color:var(--am)}
+@keyframes in{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+#mdl{position:fixed;inset:0;background:rgba(3,6,14,.72);backdrop-filter:blur(5px);z-index:75;
+  display:none;place-items:center;padding:20px}
+#mdl.on{display:grid}
+.mbox{width:min(560px,94vw);background:var(--bg2);border:1px solid var(--line);border-radius:16px;
+  padding:20px 22px;box-shadow:var(--sh);animation:in .18s}
+.mbox h3{font-size:15px;margin-bottom:12px;text-transform:none;letter-spacing:0;color:var(--tx)}
+#pal{position:fixed;inset:0;background:rgba(3,6,14,.72);backdrop-filter:blur(5px);z-index:70;
+  display:none;place-items:start center;padding-top:15vh}
+#pal.on{display:grid}
+.pbox{width:min(560px,92vw);background:var(--bg2);border:1px solid var(--line);border-radius:16px;
+  overflow:hidden;box-shadow:var(--sh)}
+.pbox input{width:100%;border:0;background:transparent;padding:16px 18px;font-size:15px;outline:0;
+  border-bottom:1px solid var(--line)}
+.plist{max-height:330px;overflow-y:auto;padding:7px}
+.pi{display:flex;gap:11px;align-items:center;padding:10px 12px;border-radius:9px;cursor:pointer}
+.pi.sel{background:rgba(77,140,255,.16)}
+.pi .ic{width:20px;text-align:center}
+.pi .ds{margin-left:auto;color:var(--tx3);font-size:11.5px}
+/* ── MOBILE (điện thoại) ────────────────────────────────────────────
+   Trước đây panel chỉ có ngăn kéo sidebar; phần nội dung vẫn 2–4 cột
+   nên trên máy 360–430px thì bảng tràn ngang, nút bấm chật, khó dùng.
+   Khối này lo phần đó: một cột, bảng cuộn ngang, nút dễ bấm. */
+@media(max-width:700px){
+  .grid{gap:11px}
+  .g2{grid-template-columns:1fr}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+  .tiles{grid-template-columns:repeat(auto-fit,minmax(126px,1fr))}
+  .card{padding:13px 13px}
+  .stat{font-size:23px}
+  main{padding:12px 11px 100px}
+  h1{font-size:17px}
+  .row{gap:8px;flex-wrap:wrap}
+  .btn{padding:9px 12px;font-size:12.5px}
+  .btn.full{width:100%;justify-content:center}
+  /* bảng dài → cuộn ngang trong khung riêng, không phá layout */
+  .card table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+  #pal{padding-top:8vh}
+  .pbox{width:94vw}
+  .pi .ds{display:none}
+  .plist{max-height:56vh}
+  input.i,select.i,textarea.i{font-size:16px}  /* iOS không zoom khi focus */
+}
+@media(max-width:900px){
+  #app.on{grid-template-columns:1fr}
+  aside{position:fixed;left:0;top:0;width:250px;z-index:50;transform:translateX(-105%);transition:.22s;
+    background:var(--bg2)}
+  aside.open{transform:none}
+  main{padding:16px 14px 100px}
+  #toast{bottom:96px}
+}
+/* Thứ tự QUAN TRỌNG: luật gốc phải đứng TRƯỚC media query.
+   Trước đây `#burger{display:none}` đứng sau nên đè luôn media query
+   → trên điện thoại KHÔNG có nút nào mở sidebar, panel như bị khoá. */
+#burger{display:none}
+@media(max-width:900px){#burger{display:inline-flex}}
+/* Mục lệnh (details.catsec): tiêu đề to, dễ bấm, có mũi tên mở/đóng.
+   Dùng <details> gốc của trình duyệt nên không cần JS để thu/mở. */
+details.catsec{padding:14px 16px}
+details.catsec>summary{list-style:none;display:flex;align-items:center;gap:10px;
+  font-size:14.5px;color:var(--tx)}
+details.catsec>summary::-webkit-details-marker{display:none}
+details.catsec>summary::before{content:'▸';color:var(--tx3);transition:.15s}
+details.catsec[open]>summary::before{transform:rotate(90deg)}
+details.catsec>summary .tag{margin-left:auto}
+</style>
+
+<!-- panel_export: địa chỉ bot nhúng sẵn (người dùng đổi được ngay
+     trên trang đăng nhập; lựa chọn của họ luôn được ưu tiên hơn). -->
+<script>window.__ZB_API__ = "https://rod-delivered-prerequisite-lisa.trycloudflare.com";</script>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════════ -->
+<div id="login">
+  <form class="box" id="lform">
+    <div class="mark">⌘</div>
+    <h1>ZaloBot Control Deck</h1>
+    <p>Bảng điều khiển v4 · đăng nhập để tiếp tục</p>
+    <label class="f" for="u">Tài khoản</label>
+    <input id="u" class="i" autocomplete="username" placeholder="admin">
+    <label class="f" for="p">Mật khẩu</label>
+    <input id="p" class="i" type="password" autocomplete="current-password" placeholder="••••••••">
+    <label class="f" for="srv" style="margin-top:12px">Địa chỉ bot
+      <span class="hint">— bỏ trống nếu mở panel ngay trên máy chạy bot</span></label>
+    <input id="srv" class="i mono" placeholder="https://ten-ngau-nhien.trycloudflare.com"
+      style="font-size:12.5px">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">
+      <label class="row" style="gap:6px;font-size:12.5px">
+        <input type="checkbox" id="rem"> Nhớ thiết bị này</label>
+      <button class="btn" type="button" id="tbtn" onclick="testConn()">Kiểm tra kết nối</button>
+    </div>
+    <div class="hint mono" id="srvState"></div>
+    <div class="err" id="lerr"></div>
+    <button class="btn pri full" id="lbtn" type="submit" style="margin-top:16px">Đăng nhập →</button>
+    <p style="margin:14px 0 0;font-size:11.5px">Quên mật khẩu? Xem hướng dẫn reset trong
+      <span class="mono">README</span> — hoặc chạy lệnh reset từ máy đang chạy bot.</p>
+  </form>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════════════ -->
+<div id="app">
+  <aside id="side">
+    <div class="brand">
+      <div class="mark">⌘</div>
+      <div><b id="bn">ZaloBot</b><small>Control Deck v4</small></div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="foot">
+      <div class="who">
+        <div class="av" id="av">A</div>
+        <div><b id="wn" style="font-size:12.5px">—</b><br><span class="mono" id="wr">—</span></div>
+      </div>
+      <div class="row" style="gap:6px">
+        <button class="btn" id="theme" title="Đổi sáng/tối" style="flex:1;justify-content:center">◐</button>
+        <button class="btn" id="pal2" title="Ctrl+K" style="flex:1;justify-content:center">⌕</button>
+        <button class="btn dgr" id="out" title="Đăng xuất" style="flex:1;justify-content:center">⏻</button>
+      </div>
+      <div style="margin-top:9px" class="mono" id="stamp">—</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <button class="btn" id="burger">☰</button>
+      <div><h2 id="ttl">Dashboard</h2><div class="sub" id="sub">—</div></div>
+      <div class="spacer"></div>
+      <span class="pill" id="rtt"><span class="dot"></span> — ms</span>
+      <span class="pill" id="live"><span class="dot g"></span> <span>live</span></span>
+      <button class="btn" id="rf">⟳ Làm mới</button>
+    </div>
+    <div id="view"></div>
+  </main>
+
+  <!-- Thanh tác vụ MOBILE (hiện khi ≤900px — xem CSS .mtab) -->
+  <nav id="mtab" class="mtab"></nav>
+</div>
+
+<div id="toast"></div>
+<div id="mdl"><div class="mbox" id="mbox"></div></div>
+<div id="pal"><div class="pbox">
+  <input id="pq" placeholder="Gõ để tìm lệnh, mục, hành động… (Esc để đóng)">
+  <div class="plist" id="pl"></div>
+</div></div>
+
+<script>
+'use strict';
+/* ────────────────────────────────────────────────────────────────────
+   ZaloBot Control Deck v4 — SPA một file.
+   Gọi MỘT API /api/v4/overview cho cả dashboard (nhanh hơn nhiều so
+   với 8–10 request của bản cũ). Mọi hành động khác dùng API sẵn có.
+   Chạy được cả ở origin khác: panel có thể được host TĨNH ở nơi khác rồi
+   trỏ về bot đang chạy trong nhà qua tunnel (?api=https://…). Khi đó mọi
+   request đi tới địa chỉ đó và trình duyệt phải qua được CORS (bot đã mở).
+   Token: sessionStorage cho phiên thường, localStorage khi tick "Nhớ thiết
+   bị này" — cần cho kiểu mở panel 24/7 ở tab ngoài.
+   ──────────────────────────────────────────────────────────────────── */
+const S = {
+  apiBase: '',            // địa chỉ bot (rỗng = cùng origin với panel)
+  remember: false,        // token nằm ở localStorage (thiết bị này vào thẳng)
+  token: localStorage.getItem('zbt') || sessionStorage.getItem('zbt') || '',
+  role:  localStorage.getItem('zbr') || sessionStorage.getItem('zbr') || '',
+  user:  localStorage.getItem('zbu') || sessionStorage.getItem('zbu') || '',
+  view:  'dash',
+  ov:    null,
+  cmdList: null,        // /api/commands — dùng cho badge “lệnh mới”
+  newCmds: null,        // số lệnh vừa thêm (cmd() khai báo "new": true)
+  history: [],          // mẫu RTT/độ trễ để vẽ sparkline
+  timer: null,
+  logSrc: null,
+  logRetry: 0,        // số lần thử lại luồng log (backoff khi mất kết nối)
+  queued: [],
+  noise: [],
+  data: null,           // /api/v4/data/status — kho ảnh dựng sẵn (API-ZALO)
+};
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = n => (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString('vi-VN');
+const ms  = n => n == null ? '—' : (n < 1000 ? n + ' ms' : (n/1000).toFixed(2) + ' s');
+const bsize = n => {                       // dung lượng kiểu người đọc được
+  n = Number(n) || 0;
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n/1024).toFixed(0) + ' KB';
+  return (n/1048576).toFixed(1) + ' MB';
+};
+
+/* ── Địa chỉ bot (để panel host tĩnh ở nơi khác vẫn điều khiển được) ── */
+function setApiBase(v, save = true) {
+  S.apiBase = String(v || '').trim().replace(/\/+$/, '');
+  if (save) {
+    try {
+      // Lưu dạng JSON để phân biệt "chưa từng chọn" (null) với "chọn dùng
+      // cùng máy" (chuỗi rỗng). Nếu lưu rỗng đơn thuần thì địa chỉ mặc định
+      // của bản host tĩnh sẽ ghi đè lựa chọn đó ở lần mở sau.
+      localStorage.setItem('zb_api', JSON.stringify({ v: S.apiBase }));
+    } catch (e) {}
+  }
+  return S.apiBase;
+}
+function apiUrl(path) {
+  if (!S.apiBase || /^https?:/i.test(path)) return path;
+  return S.apiBase + (path.startsWith('/') ? path : '/' + path);
+}
+function savedApiBase() {
+  try {
+    const raw = localStorage.getItem('zb_api');
+    if (raw == null) return null;           // chưa chọn → dùng mặc định bản host
+    const d = JSON.parse(raw);
+    return String((d && d.v) || '');
+  } catch (e) { return null; }
+}
+(function initApiBase() {
+  try {
+    const q = new URLSearchParams(location.search).get('api');
+    if (q) { setApiBase(q); return; }        // ?api=… → nhớ luôn cho lần sau
+    const s = savedApiBase();
+    // Bản host tĩnh có thể nhúng sẵn địa chỉ bot (window.__ZB_API__) để mở lên
+    // là dùng được ngay, nhưng KHÔNG được đè lên lựa chọn của người dùng.
+    S.apiBase = (s != null) ? s : String(window.__ZB_API__ || '').trim();
+  } catch (e) { S.apiBase = ''; }
+})();
+
+/* Nhớ (hoặc quên) phiên: localStorage = mở lại tab vẫn vào; sessionStorage = hết phiên khi đóng tab. */
+function storeSession(remember) {
+  const st = remember ? localStorage : sessionStorage;
+  const other = remember ? sessionStorage : localStorage;
+  try {
+    ['zbt','zbr','zbu'].forEach(k => other.removeItem(k));
+    st.setItem('zbt', S.token);
+    st.setItem('zbr', S.role);
+    st.setItem('zbu', S.user);
+  } catch (e) {}
+  S.remember = !!remember;
+}
+
+async function testConn() {
+  const el = $('#srv'), st = $('#srvState'), b = $('#tbtn');
+  const old = S.apiBase;
+  setApiBase(el ? el.value : '', false);   // dùng ngay cho phiên này
+  if (b) { b.disabled = true; b.textContent = '⏳ đang thử…'; }
+  if (st) { st.textContent = ''; st.innerHTML = ''; }
+  try {
+    const r = await fetch(apiUrl('/api/v4/ping'));
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || d.ok === false) throw new Error('HTTP ' + r.status);
+    setApiBase(S.apiBase);                 // chỉ ghi nhớ khi thật sự thông
+    if (st) st.innerHTML = '<span class="dot g"></span> kết nối được bot';
+    toast('✅ Kết nối được bot', 'g');
+  } catch (e) {
+    setApiBase(old, false);                // không ghi đè địa chỉ đang chạy được
+    if (st) st.textContent = '❌ ' + e.message + ' — kiểm tra URL tunnel và cổng';
+  }
+  if (b) { b.disabled = false; b.textContent = 'Kiểm tra kết nối'; }
+}
+
+/* ── Kho dữ liệu dựng sẵn (repo API-ZALO) ───────────────────────── */
+async function dataStatus(force) {
+  if (S.data && !force) return S.data;
+  S.data = await api('/api/v4/data/status');
+  return S.data;
+}
+async function pullData() {
+  const b = $('#pullBtn'); if (b) { b.disabled = true; b.textContent = '⏳ đang kéo…'; }
+  try {
+    const d = await api('/api/v4/data/pull', { method: 'POST' });
+    toast(d.running ? '⏳ Đang kéo — thử lại sau' : '⬇️ Đang kéo dữ liệu về máy…', 'ok');
+  } catch (e) {
+    toast('🔴 ' + e.message, 'err');
+  }
+  // Chờ vài nhịp rồi làm mới số liệu trên card
+  setTimeout(async () => {
+    try { await dataStatus(true); } catch (e) {}
+    draw();
+  }, 4000);
+}
+
+function toast(msg, kind='') {
+  const el = document.createElement('div');
+  el.className = 'tst ' + kind;
+  el.innerHTML = esc(msg);
+  $('#toast').appendChild(el);
+  setTimeout(() => el.remove(), 3600);
+}
+
+/* ── HTTP ───────────────────────────────────────────────────────── */
+async function api(path, opt={}) {
+  const t0 = performance.now();
+  const o = { method: opt.method || 'GET', headers: {} };
+  if (S.token) o.headers['X-Panel-Token'] = S.token;
+  if (opt.body !== undefined) {
+    o.headers['Content-Type'] = 'application/json';
+    o.body = JSON.stringify(opt.body);
+  }
+  let r, d;
+  try {
+    r = await fetch(apiUrl(path), o);
+  } catch (e) {
+    rtt(null, false);
+    throw new Error('Không kết nối được tới bot');
+  }
+  try { d = await r.json(); } catch (e) { d = {}; }
+  if (path === '/api/v4/ping') rtt(performance.now() - t0, r.ok);
+  if (r.status === 401) { logout(true); throw new Error('Phiên đăng nhập đã hết'); }
+  if (!r.ok || d.ok === false) throw new Error(d.error || ('HTTP ' + r.status));
+  return d;
+}
+function rtt(v, ok) {
+  const el = $('#rtt');
+  if (v == null) { el.innerHTML = '<span class="dot a"></span> mất kết nối'; return; }
+  const cls = v < 120 ? 'g' : v < 500 ? 'a' : 'r';
+  el.innerHTML = `<span class="dot ${cls}"></span> ${Math.round(v)} ms`;
+  S.history.push({ t: Date.now(), v: Math.round(v), ok: !!ok });
+  if (S.history.length > 90) S.history.shift();
+}
+
+/* ── AUTH ───────────────────────────────────────────────────────── */
+$('#lform').addEventListener('submit', async e => {
+  e.preventDefault();
+  const b = $('#lbtn'); b.disabled = true; $('#lerr').textContent = '';
+  try {
+    const d = await api('/api/login', { method: 'POST', body: { username: $('#u').value, password: $('#p').value } });
+    if (!d.token) throw new Error('Máy chủ không trả token');
+    S.token = d.token; S.role = d.role || 'admin';
+    S.user = d.username || $('#u').value || 'admin';
+    const rem = !!($('#rem') && $('#rem').checked);
+    if (rem) storeSession(true);                 // "Nhớ thiết bị" → sống qua restart
+    else {
+      S.remember = false;
+      storeSession(false);
+      try { ['zbt','zbr','zbu'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+    }
+    // Đăng nhập được nghĩa là địa chỉ này đúng → nhớ cho lần mở sau.
+    setApiBase($('#srv') ? $('#srv').value : S.apiBase);
+    start();
+  } catch (err) { $('#lerr').textContent = err.message; }
+  b.disabled = false;
+});
+$('#out').addEventListener('click', () => logout());
+function logout(silent) {
+  if (S.token) api('/api/logout', { method: 'POST', body: { token: S.token } }).catch(() => {});
+  ['zbt','zbr','zbu'].forEach(k => {
+    try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch (e) {}
+  });
+  S.token = ''; S.role = ''; S.remember = false;
+  if (S.timer) clearInterval(S.timer);
+  if (S.logSrc) { S.logSrc.close(); S.logSrc = null; }
+  $('#app').classList.remove('on'); $('#login').style.display = 'grid';
+  if (!silent) toast('Đã đăng xuất');
+}
+
+/* ── NAV ────────────────────────────────────────────────────────── */
+const NAV = [
+  ['dash',    '▦', 'Dashboard',  'Tổng quan bot'],
+  ['latency', '⚡', 'Độ trễ',     'Lệnh chậm & cảnh báo'],
+  ['cache',   '🗄', 'Cache',      'Dung lượng & dọn ngay'],
+  ['gif',     '🎨', 'GIF Studio', 'Mẫu card & random'],
+  ['welcome', '👋', 'Welcome',    'Card chào mừng'],
+  ['cmds',    '⌘', 'Lệnh',       'Bật / tắt lệnh'],
+  ['mybot',   '🤖', 'Bot con',    'Sub-bot & gia hạn'],
+  ['web',     '🌐', 'Web & Cloudflare', 'Link panel, QR, tunnel'],
+  ['log',     '≡', 'Log',        'Trực tiếp từ bot'],
+  ['sys',     '⚙', 'Hệ thống',   'Tiến trình & tài nguyên'],
+];
+function renderNav() {
+  $('#nav').innerHTML = NAV.map(([k,i,n,d]) =>
+    `<button class="nv" data-v="${k}" title="${esc(d)}"><span class="ic">${i}</span>${n}` +
+    `<span class="bdg" data-b="${k}"></span></button>`).join('');
+  $$('#nav .nv[data-v]').forEach(b => b.onclick = () => go(b.dataset.v));
+  setMtab(S.view);
+}
+function go(v) {
+  // Rời tab Log thì đóng luồng SSE: giữ nó chỉ tốn kết nối (trang này có thể
+  // mở 24/7) mà log nhận được cũng không có chỗ hiển thị.
+  if (v !== 'log' && S.logSrc) {
+    try { S.logSrc.close(); } catch (e) {}
+    S.logSrc = null;
+  }
+  S.view = v;
+  $$('#nav .nv').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  const n = NAV.find(x => x[0] === v) || NAV[0];
+  $('#ttl').textContent = n[2]; $('#sub').textContent = n[3];
+  $('#side').classList.remove('open');
+  location.hash = '#/' + v;
+  setMtab(v);
+  draw();
+}
+
+/* ── MOBILE: thanh tác vụ 6 mục (kiểu app Zalo trong ảnh) ────────────
+   Sidebar bị giấu sau nút ☰ nên trên điện thoại khó chuyển trang;
+   thanh này cho 1 chạm tới 6 mục hay dùng. Badge đỏ = số LỆNH MỚI
+   (registry trả cờ `new`), bấm là mở trang Lệnh thấy ngay. */
+const MIC = {
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 10.6 12 3.4l8.8 7.2"/><path d="M5.6 9.4V20h12.8V9.4"/><path d="M9.8 20v-5.2h4.4V20"/></svg>',
+  cmds: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.3A1.8 1.8 0 0 1 4.8 4.5h3.4a1.8 1.8 0 0 1 1.4.7l1 1.3h8.6A1.8 1.8 0 0 1 21 8.3v9.4a1.8 1.8 0 0 1-1.8 1.8H4.8A1.8 1.8 0 0 1 3 17.7z"/><path d="M10.4 10.3v5.4l4.6-2.7z" fill="currentColor" stroke="none"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.2" cy="8.4" r="3.2"/><path d="M3.6 19.4c.7-3 2.9-4.7 5.6-4.7s4.9 1.7 5.6 4.7"/><path d="M16.6 5.9a3 3 0 0 1 0 5.9"/><path d="M17.6 15.2c1.8.5 3 2 3.4 4.2"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 16.4V11a5.8 5.8 0 0 1 11.6 0v5.4l1.3 2H4.9z"/><path d="M10.2 20.4a2 2 0 0 0 3.6 0"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.1"/><circle cx="12" cy="9.7" r="3.1"/><path d="M6.3 19a6.4 6.4 0 0 1 11.4 0"/></svg>',
+};
+const MNAV = [
+  ['dash',  'Trang chủ',        MIC.home],
+  ['cmds',  'Lệnh & lệnh mới',  MIC.cmds],
+  ['mybot', 'Bot con',          MIC.users],
+  ['log',   'Log',              MIC.bell],
+  ['sys',   'Hệ thống',         MIC.user],
+];
+function renderMtab() {
+  const el = $('#mtab');
+  if (!el) return;
+  el.innerHTML = MNAV.map(([k, t, ic]) =>
+    `<button class="mbtn" data-v="${k}" title="${esc(t)}">${ic}` +
+    `<span class="mbdg" data-b="${k}"></span></button>`).join('');
+  $$('#mtab .mbtn').forEach(b => b.onclick = () => go(b.dataset.v));
+  setMtab(S.view);
+  paintNewBadge();
+}
+function setMtab(v) {
+  $$('#mtab .mbtn').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+}
+/* Số LỆNH MỚI — 1 call/phiên, nuôi badge đỏ của thanh mobile.
+   (Badge mục Lệnh ở sidebar do `refresh()` giữ số bật/tắt, nên không
+   tranh chỗ; lệnh mới nằm ở cột “🆕 Lệnh mới thêm” trong trang Lệnh.) */
+function paintNewBadge() {
+  const n = S.newCmds || 0;
+  $$('.mbdg[data-b="cmds"]').forEach(el => {
+    el.textContent = n ? String(n) : '';
+    el.classList.toggle('on', !!n);
+  });
+}
+async function loadNewCmds() {
+  if (S.cmdList) return;
+  try {
+    const d = await api('/api/commands');
+    S.cmdList = d.commands || [];
+    S.newCmds = S.cmdList.filter(x => x.new).length;
+    paintNewBadge();
+  } catch (e) { /* im lặng — badge chỉ là tiện ích */ }
+}
+
+/* ── CHARTS (SVG thuần, không thư viện) ─────────────────────────── */
+function spark(pts, w=520, h=54) {
+  if (!pts.length) return '<div class="hint">Chưa có mẫu đo nào — để panel chạy vài giây.</div>';
+  const mx = Math.max(...pts.map(p => p.v), 1);
+  const step = pts.length > 1 ? w / (pts.length - 1) : w;
+  const path = pts.map((p,i) => `${i?'L':'M'}${(i*step).toFixed(1)},${(h - p.v/mx*(h-8) - 4).toFixed(1)}`).join(' ');
+  const area = `${path} L${((pts.length-1)*step).toFixed(1)},${h} L0,${h} Z`;
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:${h}px">
+    <defs><linearGradient id="gp" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4d8cff" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#4d8cff" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#gp)"/><path d="${path}" fill="none" stroke="#4d8cff" stroke-width="2"
+      stroke-linejoin="round" stroke-linecap="round"/>
+  </svg><div class="hint">Đỉnh ${num(mx)} ms · ${pts.length} mẫu gần nhất</div>`;
+}
+function donut(segs, size=132) {
+  const total = segs.reduce((a,s) => a + s.v, 0) || 1;
+  const R = 52, C = 2*Math.PI*R;
+  let off = 0;
+  const arcs = segs.map(s => {
+    const len = s.v/total*C, el =
+      `<circle cx="66" cy="66" r="${R}" fill="none" stroke="${s.c}" stroke-width="15"
+        stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}"
+        stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 66 66)"/>`;
+    off += len; return el;
+  }).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 132 132">
+    <circle cx="66" cy="66" r="${R}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="15"/>
+    ${arcs}
+    <text x="66" y="62" text-anchor="middle" fill="currentColor" font-size="21" font-weight="700">
+      ${total.toFixed(1)}</text>
+    <text x="66" y="80" text-anchor="middle" fill="var(--tx3)" font-size="11">MB</text></svg>`;
+}
+
+/* ── VIEWS ──────────────────────────────────────────────────────── */
+const V = {};
+
+V.dash = async () => {
+  const d = S.ov || await api('/api/v4/overview');
+  S.ov = d;
+  const b = d.bot || {}, c = d.cache || {}, l = d.latency || {}, t = d.ttl || {};
+  const warn = [];
+  if (d.stale) warn.push(['r', 'Bot đang chạy code cũ', 'File API mới hơn lúc tiến trình khởi động — khởi động lại bot để nạp thay đổi.']);
+  if (l.avg_ms != null && l.avg_ms > (l.slow_ms || 1000))
+    warn.push(['', `Phản hồi trung bình ${ms(l.avg_ms)}`, `${num(l.slow_count)} lần vượt ${ms(l.slow_ms)} trên ${num(l.runs)} lượt chạy.`]);
+  if (t.ok === false) warn.push(['r', 'TTL lỗi', t.error || '']);
+  return `
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="card"><h3>Trạng thái bot</h3>
+        <div class="stat">${esc(b.name || '—')}</div>
+        <div class="hint">${b.listening ? '🟢 đang nghe sự kiện' : '🔴 chưa kết nối'} · tiền tố <b>${esc(b.prefix||'—')}</b></div>
+        <div class="bar"><i style="width:${b.listening?100:30}%"></i></div></div>
+      <div class="card"><h3>Uptime</h3>
+        <div class="stat mono">${esc(b.uptime||'—')}</div>
+        <div class="hint">v${esc(b.version||'—')} · UID ${esc(b.uid||'—')}</div></div>
+      <div class="card"><h3>Lệnh · Nhóm</h3>
+        <div class="stat">${num(b.cmd_count)}<small> lệnh</small></div>
+        <div class="hint">⚡ <b style="color:var(--gr)">${num(b.cmd_enabled ?? b.cmd_count)} bật</b>
+          · <b style="color:${(b.cmd_disabled || 0) ? 'var(--am)' : 'var(--tx3)'}">${num(b.cmd_disabled || 0)} tắt</b></div>
+        <div class="hint"><b style="color:var(--az)">${num(S.groupsN ?? b.group_count)}</b> nhóm bot đang ở
+          ${S.groupsN == null ? '(theo cấu hình)' : ''}</div></div>
+      <div class="card"><h3>Tin nhắn</h3>
+        <div class="stat">${num(b.msg?.today)}<small> / ${num(b.msg?.total)} tổng</small></div>
+        <div class="hint">${num(b.msg?.sent)} tin đã gửi</div></div>
+    </div>
+    ${warn.map(([k,h,p]) => `<div class="alert ${k}"><span>${k==='r'?'🔴':'⚠️'}</span><div><b>${esc(h)}</b>${esc(p)}</div></div>`).join('')}
+    <div class="grid g2" style="margin-bottom:14px">
+      <div class="card"><h3>⚡ Độ trễ phản hồi</h3>
+        <div class="stat">${ms(l.avg_ms)}<small> trung bình</small></div>
+        <div class="hint">${num(l.commands)} lệnh · ${num(l.runs)} lượt · ${num(l.slow_count)} lần chậm</div>
+        <div class="row" style="margin-top:11px">
+          <button class="btn" onclick="go('latency')">Xem chi tiết</button>
+          <button class="btn dgr" onclick="resetStats()">Xoá số liệu</button></div></div>
+      <div class="card"><h3>🗄 Cache sinh lúc chạy</h3>
+        <div class="stat">${num(c.total_mb)}<small> MB / ${num(c.total_files)} file</small></div>
+        <div class="hint">${num(c.dirs)} thư mục cache · giữ tự động theo tuổi + trần</div>
+        <div class="row" style="margin-top:11px">
+          <button class="btn ok" onclick="gcNow()">🧹 Dọn ngay</button>
+          <button class="btn" onclick="go('cache')">Chi tiết</button></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h3>⏱ Vòng phản hồi panel (RTT)</h3>${spark(S.history)}</div>
+      <div class="card"><h3>🛡 TTL tự thu hồi</h3>
+        <div class="tiles">
+          <div class="tile"><div class="k">Áp dụng</div><div class="v">${t.apply_all ? 'Tất cả' : 'Chọn lọc'}</div></div>
+          <div class="tile"><div class="k">Mặc định</div><div class="v">${num(t.apply_all_sec)}s</div></div>
+          <div class="tile"><div class="k">Tối đa</div><div class="v">${num(t.max_ttl_sec)}s</div></div>
+          <div class="tile"><div class="k">Bỏ qua</div><div class="v">${(t.skip_commands||[]).length}</div></div>
+        </div>
+        <div class="hint" style="margin-top:10px">Không còn icon đếm ngược — bot tự xoá tin, không tốn call Zalo.</div></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Công cụ nhanh</h3>
+      <div class="row">
+        <button class="btn" onclick="go('gif')">🎨 Chọn mẫu card GIF</button>
+        <button class="btn" onclick="go('cmds')">⌘ Bật/tắt lệnh</button>
+        <button class="btn" onclick="selfCheck()">🩺 Chẩn đoán panel</button>
+        <button class="btn" onclick="census()">🧭 Bản đồ API</button>
+      </div></div>`;
+};
+
+V.latency = async () => {
+  const l = (S.ov||{}).latency || {};
+  const d = await api('/api/cmd-stats?by=avg_ms&limit=12');
+  const rows = d.rows || [], sm = d.summary || {};
+  const slowMs = sm.slow_ms || 1000;
+  const bad = rows.filter(r => (r.avg_ms||0) >= slowMs*2).slice(0,4);
+  return `
+    ${bad.length ? `<div class="alert r"><span>🔴</span><div><b>Lệnh chậm bất thường</b>
+      ${bad.map(r=>`<b class="mono">${esc(r.cmd)}</b> ${ms(r.avg_ms)}`).join(' · ')}</div></div>` : ''}
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="card"><h3>Trung bình</h3><div class="stat">${ms(sm.avg_ms)}</div>
+        <div class="hint">${num(sm.runs)} lượt · ${num(sm.commands)} lệnh</div></div>
+      <div class="card"><h3>Ngưỡng chậm</h3><div class="stat">${ms(sm.slow_ms)}</div>
+        <div class="hint">${num(sm.slow_count)} lần vượt ngưỡng</div></div>
+      <div class="card"><h3>Lỗi</h3><div class="stat" style="color:${sm.errors?'var(--rd)':'inherit'}">${num(sm.errors)}</div>
+        <div class="hint">số lần lệnh ném lỗi</div></div>
+      <div class="card"><h3>Chậm nhất</h3><div class="stat mono" style="font-size:19px">${esc(sm.slowest?.cmd || '—')}</div>
+        <div class="hint">${ms(sm.slowest?.avg_ms)} trung bình</div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px"><h3>Bảng xếp hạng lệnh chậm</h3>
+      ${rows.length ? `<table><thead><tr><th>Lệnh</th><th class="num">TB</th><th class="num">Lần chạy</th>
+        <th class="num">Chậm</th><th class="num">Chậm nhất</th><th></th></tr></thead><tbody>
+        ${rows.map(r => {
+          const a = r.avg_ms||0, k = a>=slowMs*2?'r':a>=slowMs?'a':'g';
+          return `<tr><td class="mono">${esc(r.cmd)}</td><td class="num">${ms(a)}</td>
+            <td class="num">${num(r.count)}</td><td class="num">${num(r.slow_count)}</td>
+            <td class="num">${ms(r.max_ms)}</td><td><span class="tag ${k}">${k==='r'?'rất chậm':k==='a'?'chậm':'ổn'}</span></td></tr>`;
+        }).join('')}</tbody></table>` : '<div class="hint">Chưa có dữ liệu — bot cần chạy ít nhất một lệnh.</div>'}
+    </div>
+    <div class="card"><h3>⏱ RTT từ trình duyệt tới panel</h3>${spark(S.history)}
+      <div class="row" style="margin-top:11px">
+        <button class="btn dgr" onclick="resetStats()">Xoá toàn bộ số liệu</button>
+        <button class="btn" onclick="draw()">⟳ Đo lại</button></div></div>`;
+};
+
+V.cache = async () => {
+  const d = await api('/api/cache/stats');
+  const rows = d.rows || [];
+  const pal = ['#4d8cff','#9b6cff','#38e1d0','#ffb43d','#ff5c72','#3ddc84','#7d8bff','#ff8fb1'];
+  const segs = rows.slice(0,8).map((r,i) => ({ v: r.mb||0, c: pal[i%pal.length], n: r.path }));
+  return `
+    <div class="grid g2" style="margin-bottom:14px">
+      <div class="card"><h3>Tổng dung lượng cache</h3>
+        <div class="row" style="gap:18px;align-items:center">
+          <div style="color:var(--az)">${donut(segs)}</div>
+          <div style="flex:1;min-width:180px">
+            ${segs.map(s => `<div class="row" style="gap:8px;margin-bottom:6px">
+              <span class="sw" style="background:${s.c}"></span>
+              <span class="mono" style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis">${esc(s.n)}</span>
+              <b class="num">${s.v} MB</b></div>`).join('') || '<div class="hint">Sạch — không có file nào.</div>'}
+          </div></div></div>
+      <div class="card"><h3>Sức khoẻ dọn rác</h3>
+        <div class="tiles">
+          <div class="tile"><div class="k">File</div><div class="v">${num(d.total_files)}</div></div>
+          <div class="tile"><div class="k">Dung lượng</div><div class="v">${num(d.total_mb)} MB</div></div>
+          <div class="tile"><div class="k">Thread</div><div class="v">${num(d.threads)}</div></div>
+        </div>
+        ${d.last_sweep && Object.keys(d.last_sweep).length ? `<div class="hint" style="margin-top:11px">Lần dọn gần nhất:
+          ${Object.entries(d.last_sweep).map(([k,v]) => `<span class="mono">${esc(k)}×${v}</span>`).join(', ')}</div>` : ''}
+        <div class="row" style="margin-top:12px">
+          <button class="btn ok" onclick="gcNow()">🧹 Dọn ngay</button>
+          <button class="btn" onclick="draw()">🔄 Đo lại</button></div>
+        <div class="hint" style="margin-top:9px">Bot tự dọn khi khởi động và mỗi 30 phút; file ảnh/GIF chỉ sống
+          đủ lâu để gửi đi rồi tự biến mất.</div></div>
+    </div>
+    <div class="card"><h3>Chi tiết từng thư mục</h3>
+      <table><thead><tr><th>Thư mục</th><th class="num">File</th><th class="num">MB</th>
+        <th class="num">Tuổi tối đa</th><th class="num">Trần</th><th class="num">Mới nhất</th></tr></thead><tbody>
+        ${rows.map(r => `<tr><td class="mono">${esc(r.path)}</td><td class="num">${num(r.files)}</td>
+          <td class="num">${r.mb}</td><td class="num">${r.max_age_h}h</td><td class="num">${r.cap_mb} MB</td>
+          <td class="num">${r.newest_h == null ? '—' : r.newest_h + 'h'}</td></tr>`).join('')
+        || '<tr><td colspan="6" class="hint">Không có thư mục cache nào có file.</td></tr>'}
+      </tbody></table></div>`;
+};
+
+V.gif = async () => {
+  const d = await api('/api/gif/inventory');
+  let lw = { layouts: [], layout: 'hero' };
+  try { lw = await api('/api/v4/card/style'); } catch (e) {}
+  const t = d.themes || [], cur = d.default || 'random';
+  const cmds = d.commands || [];
+  const T = S.token;
+  const canEdit = S.role === 'admin' || S.role === 'owner';
+  // extension của file tĩnh trên disk cho mỗi lệnh (để panel biết đường dẫn đúng)
+  const extMap = {
+    ytm:'.jpg', nct:'.jpg', adm:'.jpg', zing:'.jpg', scl:'.jpg', spt:'.jpg',
+    stk:'.png', sendgif:'.png', imganime:'.png', pin:'.jpg', browser:'.png',
+    abv:'.jpg', getvd:'.jpg', setavt:'.png', setavtbox:'.png', pixel:'.png',
+    sendsticker:'.png', mysticker:'.png', qredit:'.png', loveqr:'.png',
+  };
+  return `
+    <div class="card" style="margin-bottom:14px"><h3>🧩 Bố cục card GIF — chọn 1 trong ${lw.layouts.length} mẫu</h3>
+      <div class="hint" style="margin-bottom:10px">Bố cục quyết định CÁCH TRÌNH BÀY (tiêu đề, bảng, ô thông số…),
+        còn màu nền thì vẫn bốc theo nội dung (16 theme ở dưới). Ảnh dưới là card THẬT, font vẽ thẳng vào card.</div>
+      <div class="gal">
+        ${lw.layouts.map(x => `<button class="th ${lw.layout===x.id?'on':''}"
+            ${canEdit ? `onclick="setLayout('${esc(x.id)}')"` : 'disabled title="Chỉ admin/owner"'}
+            title="${esc(x.label)}">
+          <img loading="lazy" src="/api/gif/layout/preview?layout=${encodeURIComponent(x.id)}&token=${encodeURIComponent(T)}"
+            alt="${esc(x.id)}" onerror="this.style.opacity=.25">
+          <div class="nm">${esc(x.id)}</div></button>`).join('')}
+      </div>
+      <div class="hint" style="margin-top:9px">Đang dùng: <b class="mono">${esc(lw.layout)}</b>
+        ${canEdit ? '' : '· chỉ admin/owner đổi được'}</div></div>
+    <div class="card" style="margin-bottom:14px"><h3>🎨 Chọn mẫu card mặc định (${t.length} mẫu)</h3>
+      <div class="row" style="margin-bottom:13px">
+        <span class="pill"><span class="dot ${cur==='random'?'g':'a'}"></span>
+          Đang dùng: <b class="mono">${esc(cur)}</b></span>
+        <button class="btn pri" onclick="setTheme('all','random')">🎲 Ngẫu nhiên mỗi lần</button>
+      </div>
+      <div class="gal">
+        <button class="th ${cur==='random'?'on':''}" onclick="setTheme('all','random')">
+          <div style="height:96px;display:grid;place-items:center;font-size:30px;
+            background:linear-gradient(135deg,rgba(77,140,255,.22),rgba(155,108,255,.22))">🎲</div>
+          <div class="nm">Ngẫu nhiên</div></button>
+        ${t.map(x => `<button class="th ${cur===x?'on':''}" onclick="setTheme('all','${esc(x)}')">
+          <img loading="lazy" src="/api/gif/theme/preview?theme=${encodeURIComponent(x)}&token=${encodeURIComponent(T)}"
+            alt="${esc(x)}" onerror="this.style.opacity=.25">
+          <div class="nm">${esc(x)}<span class="sw" style="background:${x==='wine'?'#ff5c72':'#4d8cff'}"></span></div>
+        </button>`).join('')}
+      </div></div>
+    <div class="card"><h3>Ghim mẫu theo từng lệnh (${cmds.length})</h3>
+      <table><thead><tr><th>Lệnh</th><th>Gửi</th><th>Mẫu riêng</th><th>Trạng thái</th></tr></thead><tbody>
+        ${cmds.map(c => `<tr><td class="mono">${esc(c.cmd)}</td><td><span class="tag b">${esc(c.sends_text || '')}</span></td>
+          <td><select class="i" style="padding:5px 8px;max-width:170px" onchange="setTheme('cmd','', '${esc(c.cmd)}', this.value)">
+            <option value="">— theo mặc định —</option>
+            ${t.map(x => `<option value="${esc(x)}" ${c.theme===x?'selected':''}>${esc(x)}</option>`).join('')}
+          </select></td>
+          <td><span class="tag ${c.on?'g':'r'}">${c.on?'đang bật':'đã tắt'}</span></td></tr>`).join('')
+        || '<tr><td colspan="4" class="hint">Không quét thấy lệnh nào gửi ảnh.</td></tr>'}
+      </tbody></table>
+      <div class="hint" style="margin-top:11px">Card GIF <b>không lưu ra đĩa</b>: bot dựng khi phản hồi,
+        gửi xong là xoá. Panel gọi cùng nội dung nên kết quả lặp lại trả tức thì từ cache RAM.</div></div>
+    <div class="card" style="margin-top:14px"><h3>🖼 Toàn bộ card GIF bot gửi (${cmds.length} lệnh)</h3>
+      <div class="hint" style="margin-bottom:10px">Mỗi ảnh dưới đây là card THẬT của lệnh đó —
+        dựng bằng đúng pipeline bot dùng khi trả lời, nên <b>font được vẽ thẳng vào ảnh</b>,
+        không phải lớp chữ của trình duyệt. 66 ảnh đã dựng sẵn trên disk, mở tab là thấy ngay.</div>
+      <div class="gal">
+        ${cmds.map(c => `<button class="th" title="${esc(c.cmd)} — ${esc(c.sends_text || '')}"
+            onclick="go('cmds')">
+          <img loading="eager" src="${apiUrl('/gif_studio/' + esc(c.cmd) + (extMap[c.cmd] || ''))}"
+            alt="card ${esc(c.cmd)}" onerror="this.onerror=null;this.src=apiUrl('/api/gif/card/demo?cmd=${encodeURIComponent(c.cmd)}&token=${encodeURIComponent(T)}')">
+          <div class="nm">⌘${esc(c.cmd)}</div></button>`).join('')}
+      </div>
+      <div class="hint" style="margin-top:11px">Ảnh dưới là card THẬT của lệnh đó —
+        dựng bằng đúng pipeline bot dùng khi trả lời, nên <b>font được vẽ thẳng vào ảnh</b>,
+        không phải lớp chữ của trình duyệt. 66 ảnh đã dựng sẵn trên disk (DATA/gif_studio/),
+        mở tab là thấy ngay, không chờ render. Nếu ảnh thay đổi, chạy
+        <span class="mono">.venv/bin/python tools/build_gif_studio.py --regen</span>.
+        Nếu thiếu file, trình duyệt tự fallback sang /api/gif/card/demo.</div></div>`;
+};
+
+
+async function setLayout(id) {
+  try {
+    const d = await api('/api/v4/card/style', { method: 'POST', body: { layout: id } });
+    toast('🧩 Đã đổi bố cục card → ' + d.layout, 'ok');
+    draw();
+  } catch (e) { toast('🔴 ' + e.message, 'err'); }
+}
+V.welcome = async () => {
+  let groups = S.wcGroups, gerr = '';
+  try {
+    if (!groups) { groups = (await api('/api/v4/groups')).groups || []; S.wcGroups = groups; }
+  } catch (e) { groups = []; gerr = e.message; }
+  const T = encodeURIComponent(S.token);
+  const first = (groups[0] || {});
+  return `
+    <div class="grid g2">
+      <div class="card"><h3>Dữ liệu card — TỰ ĐỌC từ nhóm</h3>
+        <label class="f">Nhóm (dữ liệu thật)</label>
+        ${groups.length ? `<select class="i" id="w-grp" onchange="wGroupChanged()">${groups.map(g =>
+            `<option value="${esc(g.id)}" data-n="${esc(g.name)}" data-t="${num(g.totalMember)}">${esc(g.name)} · ${num(g.totalMember)} thành viên</option>`).join('')}</select>`
+          : '<div class="hint">Bot chưa ở nhóm nào — chưa có dữ liệu để đọc.</div>'}
+        <div style="margin-top:11px" id="w-auto">
+          ${[['Tên nhóm', 'w-a-gname', '—'],
+             ['Số thành viên', 'w-a-gtotal', '—'],
+             ['Tên thành viên', 'w-a-name', '—'],
+             ['Giới tính', 'w-a-gender', 'tự đọc khi có sự kiện'],
+             ['Kiểu card', 'w-a-mode', '🎬 GIF · mẫu ngẫu nhiên'],
+             ['Sự kiện', 'w-a-event', 'vào / rời — Zalo báo']].map(([k, i, v]) =>
+            `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:9px;
+                background:rgba(255,255,255,.045);margin-bottom:6px">
+              <span class="hint" style="flex:1">${k}</span>
+              <b class="mono" id="${i}">${v}</b>
+              <span class="hint" title="Bot tự đọc — không sửa được">🔒</span></div>`).join('')}
+        </div>
+        <label class="f">Thành viên thật trong nhóm (để xem thử)</label>
+        <select class="i" id="w-mem" onchange="wMemberPicked()">
+          <option value="">— tự đọc khi có sự kiện —</option></select>
+        <div class="hint" id="w-memst" style="margin-top:6px">Đang đọc thành viên từ Zalo…</div>
+        <label class="f">Sự kiện xem thử (chỉ ảnh hưởng bản xem thử)</label>
+        <select class="i" id="w-leave" onchange="wPreview()">
+          <option value="">Vào nhóm</option><option value="1">Rời nhóm</option></select>
+        <label class="f">Avatar riêng (tuỳ chọn)</label>
+        <div class="row">
+          <input type="file" id="w-av" accept="image/*" class="i" style="padding:7px"
+            onchange="wUpload(this)">
+          <button class="btn dgr" onclick="wClearAv()">✕ Bỏ</button></div>
+        <div class="hint" id="w-avst" style="margin-top:6px">
+          Chưa chọn — khi bot gửi thật, card dùng avatar Zalo thật của thành viên.</div>
+        <div class="row" style="margin-top:13px">
+          <button class="btn" onclick="wPreview(1)">🔄 Xem thử lại</button>
+          <button class="btn" onclick="wRandom()">🎲 Ngẫu nhiên</button></div>
+      </div>
+      <div class="card"><h3>Xem thử card</h3>
+        <div style="background:#05080f;border-radius:11px;padding:10px;min-height:240px;
+          display:grid;place-items:center">
+          <img id="w-prev" alt="xem thử" style="max-width:100%;border-radius:8px"
+            src="/api/v4/welcome/preview?name=Th%C3%A0nh%20vi%C3%AAn&group=Nh%C3%B3m%20c%E1%BB%A7a%20b%E1%BA%A1n&token=${T}"></div>
+        <div class="hint" style="margin-top:9px">Render từ cache khi tham số không đổi — bấm lại là ra ngay.</div>
+        <h3 style="margin-top:16px">Bật / tắt gửi card</h3>
+        ${gerr ? `<div class="alert r" style="margin:0"><span>🔴</span><div><b>Không tải được nhóm</b>${esc(gerr)}</div></div>`
+      : `<div class="row" style="align-items:center;gap:9px">
+          <span class="pill" id="w-gstate"><span class="dot a"></span> toàn cục…</span>
+          <button class="btn ok" onclick="wToggleAll(1)">🟢 Bật tất cả</button>
+          <button class="btn dgr" onclick="wToggleAll(0)">🔴 Tắt tất cả</button></div>
+        <div class="hint" style="margin-top:5px">Công tắc toàn cục — cùng cờ với lệnh ⌘welcome on|off all.</div>
+        <div class="row" style="margin-top:12px">
+          <span class="pill" id="w-state"><span class="dot a"></span> nhóm này…</span>
+          <button class="btn ok" onclick="wToggle(1)">🟢 Bật nhóm</button>
+          <button class="btn dgr" onclick="wToggle(0)">🔴 Tắt nhóm</button></div>
+        <div class="row" style="margin-top:11px">
+          <button class="btn pri" onclick="wSend()">🚀 Gửi thật card này</button>
+          <button class="btn" onclick="forceGroups()">⟳ Nạp lại nhóm</button></div>
+        <div class="hint" style="margin-top:8px">Bot <b>tự gửi card khi có người vào/rời</b> nhóm đang bật —
+          tên, avatar, giới tính, số thành viên đều <b>tự đọc từ Zalo</b>, không phải gõ tay.</div>`}
+      </div></div>`;
+};
+
+V.cmds = async () => {
+  const d = await api('/api/commands');
+  const c = d.commands || [];
+  S.queued = c;
+  // Lệnh mới (cmd() khai báo "new": true) — gom lên đầu để không lẫn
+  // vào 60+ lệnh cũ; đồng thời cập nhật badge đỏ.
+  S.cmdList = c;
+  const news = c.filter(x => x.new);
+  S.newCmds = news.length;
+  paintNewBadge();
+  const sm = d.tags_summary || {};   // số lệnh có tag, tính ở server
+  // Prefix: XEM ai cũng được, ĐỔI chỉ admin/owner (khớp lệnh ⌘prefix)
+  const cur = (S.ov?.bot?.prefix) || '⌘';
+  const canEdit = (S.role === 'admin' || S.role === 'owner');
+  const nOff = (typeof d.disabled === 'number')
+    ? d.disabled : Math.max(0, (d.total || 0) - (d.enabled || 0));
+  // CHIA MỤC: mỗi nhóm lệnh (nhạc, ảnh, quản trị, media…) là MỘT khối
+  // riêng có tiêu đề + số đang bật + nút bật/tắt cả mục. Trước đây 71 lệnh
+  // đổ chung một bảng, muốn tắt cả nhóm nhạc phải bấm từng cái.
+  const g = {};
+  c.forEach(x => { const k = x.category_label || x.category || '📦 Chung';
+    (g[k] = g[k] || []).push(x); });
+  const keys = Object.keys(g).sort((a, b) => g[b].length - g[a].length || a.localeCompare(b));
+  const onN = k => g[k].filter(x => x.enabled).length;
+  let ds = null;
+  try { ds = await dataStatus(); } catch (e) { ds = null; }
+  const dataCard = !ds ? '' : `
+    <div class="card" style="margin-bottom:14px">
+      <h3>📦 Kho dữ liệu dựng sẵn — ${num(ds.files_local)}/${num(ds.files_remote)} file</h3>
+      <div class="hint" style="margin-bottom:10px">Ảnh preview 66 lệnh + ảnh mẫu nằm ở repo riêng
+        <span class="mono">API-ZALO</span>, không nằm trong repo code. Bot <b>đọc từ đĩa</b> nên
+        trả lời không phụ thuộc mạng; thiếu file mới tải một lần rồi cache.</div>
+      <table><tbody>
+        <tr><th style="width:180px">Trên đĩa</th><td>${num(ds.files_local)} file ·
+          <b>${bsize(ds.bytes_local)}</b> <span class="hint">(máy này)</span></td></tr>
+        <tr><th>Trên repo</th><td>${num(ds.files_remote)} file
+          <span class="hint">${ds.manifest_generated ? esc(ds.manifest_generated) : '—'}</span></td></tr>
+        <tr><th>Bản đang dùng</th><td class="mono">${ds.sha ? esc(ds.sha.slice(0,7)) : '—'}
+          ${ds.repo_present ? '' : '<span class="hint">(chưa có checkout)</span>'}</td></tr>
+        <tr><th>Cập nhật gần nhất</th><td>${ds.last_sync
+          ? new Date(ds.last_sync * 1000).toLocaleString('vi-VN') : '—'}</td></tr>
+        <tr><th>Tự đẩy khi card đổi</th><td><span class="tag ${ds.autopublish ? 'g' : 'n'}">
+          ${ds.autopublish ? 'đang bật' : 'đã tắt'}</span></td></tr>
+      </tbody></table>
+      <div style="margin-top:11px;display:flex;gap:9px;align-items:center">
+        <button class="btn" id="pullBtn" onclick="pullData()"
+          ${ds.pull_running ? 'disabled' : ''}>⬇️ Kéo dữ liệu mới</button>
+        <span class="hint">${esc(ds.pull_note || '')}</span>
+      </div></div>`;
+  return `
+    ${dataCard}
+    ${news.length ? `<div class="card" style="margin-bottom:14px;border-color:rgba(56,225,208,.5)">
+      <h3>🆕 Lệnh mới thêm (${news.length})</h3>
+      <div class="hint" style="margin-bottom:10px">Vừa được thêm vào bot — gõ đúng cú pháp dưới đây để dùng.
+        Lệnh mới cũng được dán nhãn <span class="tag b">mới</span> trong mục của nó bên dưới.</div>
+      <table><thead><tr><th>Lệnh</th><th>Mô tả</th><th>Quyền</th></tr></thead><tbody>
+        ${news.map(x => `<tr>
+          <td><b class="mono">${esc(cur)}${esc(x.name)}</b>${
+            (x.aliases && x.aliases.length)
+              ? `<br><span class="hint">${esc(cur)}${esc(x.aliases.join(' · ' + cur))}</span>`
+              : ''}</td>
+          <td style="color:var(--tx2);font-size:12.5px">${esc(x.description || '')}</td>
+          <td><span class="tag ${x.role === 'admin' ? 'r' : 'n'}">${esc(x.role || 'user')}</span></td>
+        </tr>`).join('')}
+      </tbody></table></div>` : ''}
+    <div class="card" style="margin-bottom:14px"><h3>⌘ Prefix toàn hệ thống</h3>
+      <div class="row" style="align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="stat mono" style="font-size:26px;min-width:60px">${esc(cur)}</div>
+        <input class="i" id="pnew" maxlength="5" placeholder="Prefix mới (1–5 ký tự, vd ! hoặc #)"
+          style="flex:1;min-width:220px" ${canEdit ? '' : 'disabled'}
+          onkeydown="if(event.key==='Enter')pfxSave()">
+        <button class="btn ok" onclick="pfxSave()" ${canEdit ? '' : 'disabled'}>💾 Đổi prefix</button>
+      </div>
+      <div class="hint" style="margin-top:7px">
+        ${canEdit
+          ? 'Đổi xong có hiệu lực NGAY — panel, chat và config dùng chung một nguồn, không cần restart. Giống hệt lệnh ⌘prefix.'
+          : '🔒 Chỉ ADMIN/OWNER đổi được prefix — bạn chỉ xem được prefix hiện tại.'}
+      </div></div>
+    <div class="card" style="margin-bottom:14px"><h3>Tổng quan</h3>
+      <div class="tiles">
+        <div class="tile"><div class="k">Tổng lệnh</div><div class="v">${num(d.total)}</div></div>
+        <div class="tile"><div class="k">Đang bật</div><div class="v" style="color:var(--gr)">${num(d.enabled)}</div></div>
+        <div class="tile"><div class="k">Đang tắt</div><div class="v" style="color:${nOff ? 'var(--am)' : 'var(--gr)'}">${num(nOff)}</div></div>
+        <div class="tile"><div class="k">Số mục</div><div class="v">${num(keys.length)}</div></div>
+      </div>
+      <div class="hint" style="margin-top:9px">Bot đang chạy <b>${num(d.enabled)} bật · ${num(nOff)} tắt</b> trên tổng ${num(d.total)} lệnh.</div>
+      <div class="hint" style="margin-top:4px">🏷 <b>${num(sm.tagged || 0)}/${num(d.total)}</b> lệnh có tag
+        mang thông tin (${num(sm.roles || 0)} lệnh cần admin/owner · ${num(sm.ack || 0)} có ack
+        · ${num(sm.sess || 0)} có phiên nhiều bước) · ${num(sm.group || 0)} lệnh chỉ chạy trong nhóm.</div>
+      <div class="row" style="margin-top:12px">
+        <input class="i" id="cq" placeholder="Tìm trong MỌI mục (tên, mô tả, alias)…"
+          oninput="filterCmds(this.value)" style="flex:1;min-width:220px">
+        <button class="btn" onclick="reloadCmds()">♻ Nạp lại module</button>
+        <button class="btn" onclick="toggleAllCats(true)">✅ Bật tất cả</button>
+        <button class="btn dgr" onclick="toggleAllCats(false)">⛔ Tắt tất cả</button></div></div>
+    ${keys.map((k, i) => `
+    <details class="card catsec" data-cat="${esc(k)}" ${i < 2 ? 'open' : ''}
+             style="margin-bottom:12px">
+      <summary style="cursor:pointer"><b>${esc(k)}</b>
+        <span class="tag">${onN(k)}/${g[k].length} bật</span></summary>
+      <div class="row" style="margin:10px 0 6px">
+        <button class="btn" onclick="toggleCat('${esc(k)}', true, event)">✅ Bật mục này</button>
+        <button class="btn dgr" onclick="toggleCat('${esc(k)}', false, event)">⛔ Tắt mục này</button>
+        <span class="hint">chỉ áp dụng cho ${g[k].length} lệnh trong mục ${esc(k)}</span></div>
+      <table><thead><tr><th>Tên</th><th>Tag</th><th>Mô tả</th><th>Bật</th></tr></thead>
+        <tbody>${g[k].map(rowCmd).join('')}</tbody></table>
+    </details>`).join('')}`;
+};
+/* Màu theo LOẠI tag do server gửi lên (xem /api/commands → tags).
+   Sửa lỗi cũ: JS tự đoán `role!=='member'` nên mọi lệnh đều bị dán tag đỏ. */
+const TAG_CLS = { owner:'o', admin:'r', mod:'m', ack:'a', sess:'b', group:'a', any:'n' };
+function tagChips(x) {
+  const tags = x.tags || [];
+  if (!tags.length) return '<span class="hint">— chưa có tag —</span>';
+  return tags.map(t =>
+    `<span class="tag ${TAG_CLS[t.k] || 'n'}" title="${esc(t.t)}">${esc(t.t)}</span>`
+  ).join(' ');
+}
+function rowCmd(x) {
+  // Hiện ĐÚNG cách gõ lệnh: prefix + tên (bot có thể đổi prefix bất cứ lúc nào)
+  const pfx = (S.ov?.bot?.prefix) || '⌘';
+  const cat = x.category_label || x.category || '📦 Chung';
+  const hay = (x.name + ' ' + (x.description||'') + ' ' +
+               (x.aliases||[]).join(' ') + ' ' +
+               (x.tags||[]).map(t => t.t).join(' ')).toLowerCase();
+  return `<tr data-n="${esc(hay)}" data-cat="${esc(cat)}" data-cmd="${esc(x.name)}">
+    <td><b class="mono">${esc(pfx + x.name)}</b>${x.new?' <span class="tag b">mới</span>':''}${x.aliases?.length?`<br><span class="hint">${esc(pfx)}${esc(x.aliases.join(' · ' + pfx))}</span>`:''}</td>
+    <td>${tagChips(x)}</td>
+    <td style="color:var(--tx2);font-size:12.5px">${esc(x.description||'')}</td>
+    <td><button class="swt ${x.enabled?'on':''}" role="switch"
+      aria-checked="${x.enabled?'true':'false'}" title="Bật/tắt ${esc(pfx+x.name)}"
+      onclick="toggleCmd('${esc(x.name)}', this)"><i></i></button></td></tr>`;
+}
+function filterCmds(q) {
+  // Tìm trong MỌI mục: giấu dòng không khớp để số đang bật / tổng vẫn đúng
+  const s = (q||'').toLowerCase().trim();
+  document.querySelectorAll('.catsec').forEach(sec => {
+    let vis = 0;
+    sec.querySelectorAll('tbody tr').forEach(tr => {
+      const ok = !s || tr.dataset.n.includes(s) ||
+                 sec.dataset.cat.toLowerCase().includes(s);
+      tr.style.display = ok ? '' : 'none';
+      if (ok) vis++;
+    });
+    sec.style.display = vis ? '' : 'none';
+    if (s && vis) sec.open = true;   // tự mở mục có kết quả
+  });
+}
+function _cmdRowsOf(cat) {
+  const sec = [...document.querySelectorAll('.catsec')]
+    .find(s => s.dataset.cat === cat);
+  return sec ? [...sec.querySelectorAll('tbody tr')] : [];
+}
+
+async function toggleCat(cat, on, ev) {
+  if (ev && ev.preventDefault) ev.preventDefault();
+  await _applyToggle(_cmdRowsOf(cat), on);
+  toast(`${cat}: đã ${on ? 'bật' : 'tắt'} ${_cmdRowsOf(cat).length} lệnh`, on ? 'g' : '');
+}
+
+async function toggleAllCats(on) {
+  const rows = [...document.querySelectorAll('.catsec tbody tr')];
+  await _applyToggle(rows, on);
+  toast(`Toàn bộ ${rows.length} lệnh: đã ${on ? 'bật' : 'tắt'}`, on ? 'g' : '');
+}
+
+async function _applyToggle(rows, on) {
+  // Bật/tắt tuần tự qua ĐÚNG endpoint mà công tắc lẻ dùng — không có
+  // đường riêng nào để hai bên lệch trạng thái.
+  for (const tr of rows) {
+    const sw = tr.querySelector('.swt');
+    if (!sw || sw.classList.contains('on') === on) continue;
+    try {
+      await api('/api/commands/toggle',
+        { method: 'POST', body: { name: tr.dataset.cmd, enabled: on } });
+      sw.classList.toggle('on', on);
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+      tr.closest('.catsec').querySelector('summary .tag').textContent = _catCount(tr.closest('.catsec'));
+    } catch (e) { toast(`${tr.dataset.cmd}: ${e.message}`, 'r'); }
+  }
+}
+
+function _catCount(sec) {
+  const all = [...sec.querySelectorAll('tbody tr')];
+  return `${all.filter(r => r.querySelector('.swt')?.classList.contains('on')).length}/${all.length} bật`;
+}
+
+function fmtUp(sec) {
+  sec = Math.max(0, Math.floor(Number(sec) || 0));
+  const d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600),
+        m = Math.floor((sec % 3600) / 60);
+  return d ? `${d}d ${h}h ${m}m` : (h ? `${h}h ${m}m` : `${m}m`);
+}
+/* Một bot = một card: avatar + tên + nhãn + số liệu sống + nút vòng đời.
+   Đúng kiểu ảnh người dùng gửi: Hoàng Anh [👑 Bot chính] · ⏱ 0d 0h 59m ·
+   💬 16 · 👥 0 · ⚡ 98 lệnh · đèn xanh bên phải. */
+function botCard(b) {
+  const alive = b.alive !== false && !['stopped', 'error'].includes(b.status);
+  const name = b.display_name || b.name || '?';
+  const up = b.uptime_sec || (b.started_at ? (Date.now() / 1000 - b.started_at) : 0);
+  // Avatar thật nếu có; không có thì lùi về chữ cái đầu như cũ.
+  const av = b.avatar ? `<img src="${esc(b.avatar)}" alt=""
+        referrerpolicy="no-referrer" loading="lazy">`
+      : esc(String(name).trim().slice(0, 1).toUpperCase());
+  return `<div class="botcard">
+    <div class="bav ${b.is_main ? 'main' : ''}">${av}</div>
+    <div class="bmain">
+      <div class="bhead">
+        <b class="bn">${esc(name)}</b>
+        ${b.is_main ? '<span class="tag b">👑 Bot chính</span>'
+                    : '<span class="tag g">🤖 Bot con</span>'}
+        ${b.duplicate_of_main ? '<span class="tag r" title="Trùng tài khoản bot chính">!</span>' : ''}
+        ${b.is_main ? '' : `<span class="tag n mono">${esc(b.name || '')}</span>`}
+      </div>
+      <div class="bmeta">
+        ${b.phone ? `<span title="Số điện thoại đăng nhập">📱 <b class="mono">${esc(b.phone)}</b></span>` : ''}
+        <span title="Thời gian đang chạy">⏱ <b>${fmtUp(up)}</b></span>
+        <span title="Tin nhắn đã xử lý">💬 ${num(b.msgs_today || 0)}
+          <span class="hint">hôm nay</span></span>
+        <span title="Số nhóm bot đang ở">🏠 ${num(b.groups || 0)} nhóm</span>
+        <span title="Người đã tương tác">👥 ${num(b.users || 0)}</span>
+        <span title="Lệnh đang bật trong registry">⚡ ${num(b.cmds || 0)} lệnh</span>
+        <span title="Prefix của bot này">🔑 <b class="mono">${esc(b.prefix || '⌘')}</b></span>
+        <span class="hint mono" title="UID tài khoản">🆔 ${esc(b.uid || '—')}</span>
+      </div>
+    </div>
+    <div class="bacts">
+      <span class="dot ${b.status === 'error' ? 'r' : (alive ? 'g' : 'a')}"
+        title="${esc(b.status || (alive ? 'running' : 'stopped'))}"></span>
+      ${b.is_main ? '' : `
+        <button class="btn${b.status === 'error' ? ' ok' : ''}" title="Đăng nhập lại bằng QR (cookie hết hạn)"
+          onclick="reloginModal('${esc(b.name)}')">📱</button>
+        <button class="btn" title="Khởi động lại" onclick="actBot('reset','${esc(b.name)}')">⟳</button>
+        <button class="btn" title="Dừng" onclick="actBot('stop','${esc(b.name)}')">⏸</button>
+        <button class="btn ok" title="Gia hạn (khởi động lại)" onclick="giahanBot('${esc(b.name)}')">⏱</button>
+        <button class="btn dgr" title="Xoá vĩnh viễn" onclick="delBot('${esc(b.name)}')">🗑</button>`}
+    </div></div>`;
+}
+V.mybot = async () => {
+  const d = await api('/api/v4/mybot/list');
+  let ttl = {};
+  try { ttl = await api('/api/v4/ttl'); } catch (e) { ttl = {}; }
+  const main = d.main || {}, bots = d.bots || [], warn = d.warn || '';
+  const kids = bots.filter(b => b.is_child);
+  const dup = bots.filter(b => b.duplicate_of_main);
+  const alive = kids.filter(k => k.alive).length;
+  return `
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div><h2 style="margin:0;display:flex;align-items:center;gap:9px">
+        <span class="bav" style="width:34px;height:34px;flex:0 0 34px;font-size:15px">🤖</span>
+        Bot con</h2>
+        <div class="hint" style="margin-top:5px">Tạo thêm bot bằng tài khoản Zalo khác —
+          dùng chung registry lệnh với bot chính.</div></div>
+      <button class="btn pri" onclick="addBotModal(main)"
+        style="font-size:14px;padding:10px 18px">＋ Thêm bot</button>
+    </div>
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="card"><h3>Bot chính</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin:6px 0 10px">
+          ${main.avatar ? `<img src="${esc(main.avatar)}" alt=""
+             referrerpolicy="no-referrer"
+             style="width:56px;height:56px;border-radius:50%;object-fit:cover;
+                    border:2px solid var(--acc,#15A85F)">` : ''}
+          <div>
+            <div class="stat" style="font-size:20px">${esc(main.display_name || '—')}</div>
+            ${main.phone ? `<div class="hint mono">📱 ${esc(main.phone)}</div>` : ''}
+          </div>
+        </div>
+        <div class="hint">prefix <b class="mono">${esc(main.prefix || '⌘')}</b> · UID ${esc(main.uid || '—')}</div>
+        <div class="bar"><i style="width:100%"></i></div></div>
+      <div class="card"><h3>Bot con</h3><div class="stat">${num(kids.length)}</div>
+        <div class="hint">${num(alive)} đang chạy · ${num(kids.length - alive)} dừng</div></div>
+      <div class="card"><h3>Slot tổng</h3><div class="stat">${num(bots.length)}</div>
+        <div class="hint">${num(dup.length)} slot trùng tài khoản chính</div></div>
+      <div class="card"><h3>Gia hạn tất cả</h3>
+        <button class="btn ok" style="width:100%;justify-content:center" onclick="giahanBot('all')">⏱ Gia hạn mọi slot</button>
+        <div class="hint" style="margin-top:8px">Khởi động lại các slot đã dừng hoặc hết hạn.</div></div>
+    </div>
+    ${warn ? `<div class="alert"><span>⚠️</span><div><b>Chưa nạp được mybot</b>${esc(warn)}</div></div>` : ''}
+    <div class="card"><h3>Danh sách bot · ${num(bots.length + 1)}</h3>
+      ${botCard(main)}
+      ${bots.length ? bots.map(botCard).join('')
+        : `<div class="hint">Chưa có bot con nào. Bấm <b>+ Thêm bot</b> ở trên
+            (hoặc gõ <b class="mono">${esc(main.prefix || '⌘')}bot create</b> trong chat).</div>`}
+      <div class="hint" style="margin-top:11px">Mọi hành động ở đây chạy nền nên panel không bị treo;
+        bot con vào bằng tài khoản khác, cùng bật/tắt lệnh với bot chính.</div></div>
+    <div class="card" style="margin-top:14px"><h3>⏱ TTL MỌI PHẢN HỒI — BOT CHÍNH + MỌI BOT CON</h3>
+      <div class="row" style="flex-wrap:wrap;gap:10px;align-items:center">
+        <label class="row" style="gap:7px"><input type="checkbox" id="ttl-on"
+          ${ttl.apply_all ? 'checked' : ''}> <b>Bật tự xoá tin bot gửi</b></label>
+        <button class="btn pri" onclick="ttlSave()">💾 Lưu cho mọi bot</button>
+        <span class="hint">Đang áp: <b>${ttl.apply_all
+            ? esc(ttl.tier_transient_h || ttl.apply_all_h || 'tắt')
+            : 'tắt'}</b> (tin chờ) ·
+          <b>${ttl.apply_all ? esc(ttl.tier_normal_h || '—') : '—'}</b> (tin kết quả)
+          · mode <b>${esc(ttl.mode || 'fallback')}</b> ·
+          trần <b>${num(ttl.max_ttl_sec || 0)}s</b>
+          · đang chờ xoá <b>${num(ttl.pending_fallback || 0)}</b> tin</span>
+      </div>
+
+      <div class="grid g3" style="margin-top:12px">
+        <div class="card" style="background:rgba(255,255,255,.03)">
+          <h3 style="font-size:14px">⏳ Tin chờ / ack</h3>
+          <div class="hint" style="margin-bottom:6px">"Đang tải…", "Vui lòng đợi".
+            Chỉ cần nháy để biết bot đã nhận.</div>
+          <div class="row" style="gap:6px">
+            <input class="i" id="ttl-ti" style="width:88px"
+              value="${num(ttl.tier_transient_sec || 0)}"> giây
+            <span class="hint">${esc(ttl.tier_transient_h || '')}</span>
+          </div>
+        </div>
+        <div class="card" style="background:rgba(255,255,255,.03)">
+          <h3 style="font-size:14px">💬 Tin kết quả (chữ)</h3>
+          <div class="hint" style="margin-bottom:6px">Câu trả lời, thông báo lỗi,
+            danh sách bài hát. Đủ thời gian đọc và chép.</div>
+          <div class="row" style="gap:6px">
+            <input class="i" id="ttl-no" style="width:88px"
+              value="${num(ttl.tier_normal_sec || 0)}"> giây
+            <span class="hint">${esc(ttl.tier_normal_h || '')}</span>
+          </div>
+        </div>
+        <div class="card" style="background:rgba(255,255,255,.03)">
+          <h3 style="font-size:14px">🖼 Card ảnh / GIF / video</h3>
+          <div class="hint" style="margin-bottom:6px">Card trực quan, bạn còn phải
+            nhìn và bấm. Mặc định đều bằng tin kết quả.</div>
+          <div class="row" style="gap:6px">
+            <input class="i" id="ttl-lo" style="width:88px"
+              value="${num(ttl.tier_long_sec || 0)}"> giây
+            <span class="hint">${esc(ttl.tier_long_h || '')}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;gap:8px;align-items:center">
+        <span class="hint" style="min-width:104px">Trần toàn cục</span>
+        <input class="i" id="ttl-max" style="width:96px"
+          value="${num(ttl.max_ttl_sec || 0)}"> giây
+        <span class="hint">Lệnh tự truyền TTL cũng bị chặn về trần này
+          (hiện ${esc(ttl.max_ttl_h || '')}).</span>
+      </div>
+
+      <div class="hint" style="margin-top:11px;line-height:1.55">
+        <b>Bot con dùng CHUNG núm này</b> (một engine TTL duy nhất): mọi tin bot gửi —
+        kể cả từ bot con — tự xoá sau thời gian trên, <b>không cần restart</b>.
+        Đổi ở đây là cả hệ thống có hiệu lực ngay.<br>
+        Tin <b>bảng chọn bài</b> (nct/scl/ytm/zing) được thu hồi ngay khi bạn nhập
+        số, không đợi hết TTL. Lệnh trong <span class="mono">skip_commands</span>
+        (${num((ttl.skip_commands || []).length)} lệnh) được miễn TTL.
+      </div></div>`;
+};
+async function ttlSave() {
+  const on = $('#ttl-on')?.checked;
+  const body = { apply_all: !!on };
+  const put = (sel, key) => {
+    const v = parseInt($(sel)?.value || '0', 10);
+    if (v > 0) body[key] = v;
+  };
+  put('#ttl-ti', 'tier_transient_sec');
+  put('#ttl-no', 'tier_normal_sec');
+  put('#ttl-lo', 'tier_long_sec');
+  put('#ttl-max', 'max_ttl_sec');
+  try {
+    const r = await api('/api/v4/ttl', { method: 'POST', body });
+    toast(r.apply_all
+      ? `TTL mọi bot: chờ ${r.tier_transient_sec}s · thường ${r.tier_normal_sec}s`
+        + ` · card ${r.tier_long_sec}s`
+      : 'Đã tắt tự xoá tin', r.apply_all ? 'g' : 'r');
+    draw();
+  } catch (e) { toast(e.message, 'r'); }
+}
+/* Thêm bot con — 2 cách: dán imei+cookie, hoặc quét QR (không cần cookie).
+   Cả 2 đều CHỜ đăng nhập thật: imei/cookie hoặc QR phải ĐÚNG mới thêm;
+   sai thì server xoá slot vừa tạo và trả lỗi, panel hiện đỏ ngay tại chỗ. */
+function addBotModal(mainInput) {
+  const main = mainInput || { prefix: '⌘' };
+  const pfx = esc(main.prefix || '⌘');
+  modal('＋ Thêm bot con', `
+    <div class="row" style="gap:7px;margin-bottom:12px">
+      <button class="btn pri" id="nb-t-imei" onclick="addBotTab('imei')">🔑 IMEI + Cookie</button>
+      <button class="btn" id="nb-t-qr" onclick="addBotTab('qr')">📱 Quét QR</button>
+    </div>
+    <div id="nb-pane-imei">
+      <div class="hint" style="margin-bottom:10px">Dán <b>imei</b> + <b>cookie</b> của tài khoản Zalo
+        dùng làm bot con. Cookie nhận cả JSON lẫn <b class="mono">secret_key</b> đơn lẻ.
+        Bot chỉ được thêm khi Zalo chấp nhận đăng nhập.</div>
+      <input class="i" id="nb-imei" placeholder="IMEI  (vd 45f87422-a7f3-...)"
+        style="width:100%;margin-bottom:8px">
+      <textarea class="i" id="nb-cookie" rows="4"
+        placeholder='Cookie JSON: {"secret_key":"…", "imei":"…"}  — hoặc chỉ secret_key'
+        style="width:100%;margin-bottom:8px;font-family:var(--fm)"></textarea>
+      <input class="i" id="nb-prefix" placeholder="Prefix (mặc định = prefix bot chính)"
+        style="width:100%" value="${pfx}">
+      <div class="hint" style="margin-top:9px">Bot con chạy ở tiến trình riêng, dùng chung danh sách lệnh
+        và tự xoá tin theo TTL như bot chính.</div>
+      <details style="margin-top:10px">
+        <summary class="hint" style="cursor:pointer;font-weight:700">
+          📖 Chưa biết lấy imei / cookie? Bấm xem cách lấy</summary>
+        <div class="hint" style="margin-top:7px;line-height:1.7">
+          Mở Zalo Web <b class="mono">chat.zalo.me</b> trên máy tính → bấm <b>F12</b> (DevTools):<br>
+          • <b>imei</b>: tab <b>Application</b> (hoặc Storage) → <b>Local Storage</b> →
+            <b class="mono">chat.zalo.me</b> → tìm giá trị có dạng UUID
+            (8-4-4-4-12 ký tự, thường ở khoá có tên imei/uuid).<br>
+          • <b>cookie</b>: tab <b>Network</b> → bấm một request bất kỳ tới
+            <b class="mono">chat.zalo.me</b> → <b>Headers</b> → <b class="mono">Cookie</b>;
+            dán nguyên dòng Cookie, hoặc chỉ cần <b class="mono">secret_key=…</b>.<br>
+          💡 Không muốn lấy gì cả? Chuyển tab <b>📱 Quét QR</b> ở trên — quét bằng
+          app Zalo trên điện thoại là bot con được thêm ngay.
+        </div>
+      </details>
+    </div>
+    <div id="nb-pane-qr" style="display:none">
+      <div class="hint" style="margin-bottom:10px;text-align:center">Không cần cookie: quét QR
+        bằng app Zalo rồi xác nhận trên điện thoại — bot con được tạo ngay sau đó.</div>
+      <div id="nb-qr-box" style="display:none;text-align:center">
+        <img id="nb-qr-img" alt="QR đăng nhập"
+          style="width:100%;max-width:270px;background:#fff;border-radius:10px;padding:8px">
+      </div>
+      <div class="hint" id="nb-qr-state" style="margin:9px 0;text-align:center">Bấm “Tạo QR” để bắt đầu.</div>
+      <input class="i" id="nb-qr-prefix" placeholder="Prefix (mặc định = prefix bot chính)"
+        style="width:100%" value="${pfx}">
+    </div>`,
+    'Thêm bot', () => {});
+  // Nút OK dùng chung: tab IMEI = thêm bot, tab QR = tạo/tạo lại mã QR.
+  $('#m-ok').onclick = () => {
+    if ($('#nb-pane-qr')?.style.display !== 'none') { qrAddStart(); return; }
+    addBotSubmit();
+  };
+}
+function addBotTab(tab) {
+  const qr = tab === 'qr';
+  const pImei = $('#nb-pane-imei'), pQr = $('#nb-pane-qr');
+  if (!pImei || !pQr) return;
+  pImei.style.display = qr ? 'none' : '';
+  pQr.style.display = qr ? '' : 'none';
+  $('#nb-t-imei')?.classList.toggle('pri', !qr);
+  $('#nb-t-qr')?.classList.toggle('pri', qr);
+  const ok = $('#m-ok');
+  if (ok) ok.textContent = qr ? '🔄 Tạo QR' : 'Thêm bot';
+  if (qr && !S._qrSession) qrAddStart();     // mở tab là có QR luôn
+}
+async function addBotSubmit() {
+  const imei = ($('#nb-imei')?.value || '').trim();
+  const cookie = ($('#nb-cookie')?.value || '').trim();
+  const prefix = ($('#nb-prefix')?.value || '').trim();
+  const btn = $('#m-ok');
+  if (!imei || !cookie) { toast('Thiếu imei hoặc cookie', 'r'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang kiểm tra đăng nhập…'; }
+  try {
+    const r = await api('/api/v4/mybot/add', { method: 'POST',
+      body: { imei, cookie, prefix } });
+    toast(r.message || 'Đã thêm bot con', 'g');
+    modalClose(); draw();
+  } catch (e) {
+    // imei/cookie sai → server không thêm slot; giữ form để dán lại.
+    toast(e.message, 'r');
+    if (btn) { btn.disabled = false; btn.textContent = 'Thêm bot'; }
+  }
+}
+async function qrAddStart() {
+  if (S._qrTimer) { clearInterval(S._qrTimer); S._qrTimer = null; }
+  S._qrSession = '';
+  const btn = $('#m-ok'), state = $('#nb-qr-state');
+  const prefix = ($('#nb-qr-prefix')?.value || '').trim();
+  const setState = t => { if (state) state.textContent = t; };
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tạo QR…'; }
+  setState('Đang tạo mã QR…');
+  try {
+    const d = await api('/api/v4/mybot/qr/start', { method: 'POST', body: { prefix } });
+    S._qrSession = d.id;
+    const img = $('#nb-qr-img'), box = $('#nb-qr-box');
+    if (img && d.image) img.src = d.image;
+    if (box) box.style.display = '';
+    setState(d.message || 'Quét mã QR bằng app Zalo');
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Tạo QR mới'; }
+    S._qrTimer = setInterval(qrPoll, 2000);
+  } catch (e) {
+    setState('❌ ' + e.message);
+    toast(e.message, 'r');
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Tạo QR'; }
+  }
+}
+async function qrPoll() {
+  if (!S._qrSession) return;
+  try {
+    const d = await api('/api/v4/mybot/qr/status/' + encodeURIComponent(S._qrSession));
+    const state = $('#nb-qr-state');
+    if (state && d.message) state.textContent = d.message;
+    if (d.state === 'done') {
+      clearInterval(S._qrTimer); S._qrTimer = null; S._qrSession = '';
+      toast(d.message || 'Đã thêm bot con ✅', 'g');
+      modalClose(); draw();
+    } else if (d.state === 'error') {
+      clearInterval(S._qrTimer); S._qrTimer = null; S._qrSession = '';
+      const btn = $('#m-ok');
+      if (btn) { btn.disabled = false; btn.textContent = '🔄 Tạo QR mới'; }
+      toast(d.error || 'QR thất bại', 'r');
+    }
+  } catch (e) {
+    // 1 nhịp lỗi mạng không phá phiên QR; chỉ dừng khi phiên mất hẳn.
+    if (/hết hạn|không tồn tại/i.test(e.message)) {
+      clearInterval(S._qrTimer); S._qrTimer = null; S._qrSession = '';
+      toast(e.message, 'r');
+    }
+  }
+}
+
+/* Đăng nhập LẠI bot con đã có (cookie hết hạn) — QR cấp phiên mới cho
+   ĐÚNG slot cũ: giữ nguyên tên/prefix, không tạo thêm slot. Server dùng
+   manager.relogin; quét xong panel tự refresh danh sách. */
+function reloginModal(name) {
+  modal('📱 Đăng nhập lại bot con', `
+    <div class="hint" style="margin-bottom:10px">Quét QR bằng app Zalo của tài khoản
+      <b class="mono">${esc(name)}</b>. Bot giữ nguyên tên/prefix — chỉ thay phiên
+      đăng nhập, không tạo thêm slot.</div>
+    <div id="nb-qr-box" style="display:none;text-align:center">
+      <img id="nb-qr-img" alt="QR đăng nhập"
+        style="width:100%;max-width:270px;background:#fff;border-radius:10px;padding:8px">
+    </div>
+    <div class="hint" id="nb-qr-state" style="margin:9px 0;text-align:center">Đang tạo mã QR…</div>`,
+    '🔄 Tạo QR mới', () => { qrReloginStart(name); return false; });
+  qrReloginStart(name);
+}
+async function qrReloginStart(name) {
+  if (S._qrTimer) { clearInterval(S._qrTimer); S._qrTimer = null; }
+  S._qrSession = '';
+  const btn = $('#m-ok'), state = $('#nb-qr-state');
+  const setState = t => { if (state) state.textContent = t; };
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tạo QR…'; }
+  setState('Đang tạo mã QR…');
+  try {
+    const d = await api('/api/v4/mybot/qr/start', { method: 'POST',
+      body: { name } });
+    S._qrSession = d.id;
+    const img = $('#nb-qr-img'), box = $('#nb-qr-box');
+    if (img && d.image) img.src = d.image;
+    if (box) box.style.display = '';
+    setState(d.message || 'Quét mã QR bằng app Zalo');
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Tạo QR mới'; }
+    S._qrTimer = setInterval(qrPoll, 2000);
+  } catch (e) {
+    setState('❌ ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 Tạo QR'; }
+  }
+}
+
+async function actBot(act, name) {
+  if (act === 'stop' && !confirm(`Dừng bot con [${name}]?`)) return;
+  try { const d = await api(`/api/v4/mybot/${act}/${encodeURIComponent(name)}`, { method: 'POST' });
+    toast(d.message || 'Xong', 'g'); setTimeout(draw, 1200); }
+  catch (e) { toast(e.message, 'r'); }
+}
+async function delBot(name) {
+  if (!confirm(`XOÁ VĨNH VIỄN bot con [${name}]?`)) return;
+  try { const d = await api(`/api/v4/mybot/delete/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    toast(d.message || 'Xong', 'g'); draw(); }
+  catch (e) { toast(e.message, 'r'); }
+}
+async function giahanBot(name) {
+  try { const d = await api(`/api/v4/mybot/giahan/${encodeURIComponent(name)}`, { method: 'POST' });
+    toast(`Đã gia hạn ${d.done ?? 0} slot`, 'g'); setTimeout(draw, 1500); }
+  catch (e) { toast(e.message, 'r'); }
+}
+
+V.log = async () => {
+  setTimeout(attachLog, 30);
+  return `
+    <div class="card" style="margin-bottom:14px">
+      <div class="row">
+        <span class="pill" id="lstate"><span class="dot a"></span> đang kết nối…</span>
+        <input class="i" id="lq" placeholder="Lọc theo từ khoá…" style="max-width:280px"
+          oninput="logFilter(this.value)">
+        <button class="btn" id="lpause" onclick="logPause()">⏸ Tạm dừng</button>
+        <button class="btn" onclick="S.noise=[];$('#lbox').innerHTML=''">🗑 Xoá màn hình</button>
+        <div class="spacer" style="flex:1"></div>
+        <label class="row" style="gap:6px;font-size:12.5px">
+          <input type="checkbox" id="lh" checked> ẩn log hệ thống</label>
+      </div></div>
+    <div class="log" id="lbox"><div class="hint" style="padding:8px">Đang chờ log từ bot…</div></div>`;
+};
+function attachLog() {
+  if (S.logSrc) { S.logSrc.close(); S.logSrc = null; }
+  const box = $('#lbox'); if (!box) return;
+  S.logRetry = 0;
+  openLogStream();
+}
+/* Log chứa nội dung tin nhắn thật nên luồng SSE phải có "vé" ngắn hạn: vé
+   lấy bằng POST kèm token (EventSource không gửi được header), hết hạn thì
+   xin vé mới — nhờ vậy mở panel từ xa vẫn xem được log mà người lạ không đọc lén được. */
+async function openLogStream() {
+  const box = $('#lbox'); if (!box) return;
+  if (S.logSrc) { S.logSrc.close(); S.logSrc = null; }
+  let ticket = '';
+  try {
+    const d = await api('/api/log/ticket', { method: 'POST' });
+    ticket = d.ticket || '';
+  } catch (e) {
+    const s = $('#lstate');
+    if (s) s.innerHTML = '<span class="dot r"></span> không mở được log';
+    return;
+  }
+  const src = new EventSource(apiUrl('/api/log/stream?ticket=' + encodeURIComponent(ticket)));
+  S.logSrc = src;
+  src.onopen = () => {
+    S.logRetry = 0;
+    const s = $('#lstate'); if (s) s.innerHTML = '<span class="dot g"></span> trực tiếp';
+  };
+  src.onerror = () => {
+    const s = $('#lstate');
+    if (s) s.innerHTML = '<span class="dot a"></span> đang kết nối lại…';
+    // Tự nối lại kèm vé mới (vé cũ có thể đã hết hạn sau 60 giây).
+    src.close();
+    if (S.logSrc === src) S.logSrc = null;
+    const wait = Math.min(1000 * Math.pow(2, S.logRetry || 0), 30000);
+    S.logRetry = Math.min((S.logRetry || 0) + 1, 5);
+    setTimeout(() => { if (S.view === 'log' && !S.logSrc) openLogStream(); }, wait);
+  };
+  src.onmessage = e => {
+    let d; try { d = JSON.parse(e.data); } catch { return; }
+    if (S.paused) { S.queued.push(d); if (S.queued.length > 400) S.queued.shift(); return; }
+    pushLog(d);
+  };
+}
+function pushLog(d) {
+  const lvl = (d.level || d.kind || 'info').toLowerCase();
+  const q = ($('#lq')?.value || '').toLowerCase();
+  const hideSys = $('#lh')?.checked;
+  const msg = d.msg || d.message || d.text || JSON.stringify(d);
+  if (hideSys && /^\[?(gc|system|debug)/i.test(msg)) return;
+  if (q && !(msg + ' ' + lvl).toLowerCase().includes(q)) return;
+  const box = $('#lbox'); if (!box) return;
+  const first = box.querySelector('.hint'); if (first) first.remove();
+  const el = document.createElement('div');
+  el.className = 'ln ' + (/err|fail/.test(lvl) ? 'err' : /warn/.test(lvl) ? 'warn'
+    : /ok|success/.test(lvl) ? 'ok' : 'info');
+  el.innerHTML = `<span class="t">${esc(d.ts||'')}</span><span class="l">${esc(lvl.slice(0,6).toUpperCase())}</span>
+    <span class="m">${esc(msg)}</span>`;
+  box.appendChild(el);
+  if (box.children.length > 500) box.firstChild.remove();
+  box.scrollTop = box.scrollHeight;
+}
+function logFilter() { /* lọc áp dụng cho log mới; log cũ giữ nguyên để không mất dấu */ }
+function logPause() {
+  S.paused = !S.paused;
+  const b = $('#lpause');
+  if (b) b.textContent = S.paused ? '▶ Tiếp tục' : '⏸ Tạm dừng';
+  if (!S.paused) { S.queued.forEach(pushLog); S.queued = []; }
+}
+
+V.web = async () => {
+  const d = await api('/api/v4/web');
+  const up = (s) => { const h=Math.floor(s/3600), m=Math.floor(s%3600/60);
+    return h ? `${h}h ${m}m` : m ? `${m}m ${s%60}s` : `${s}s`; };
+  if (d.starting) setTimeout(() => { if (S.view === 'web') draw(); }, 3000);
+  return `
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="card"><h3>Trong mạng LAN</h3>
+        <div class="mono" style="font-size:14px;word-break:break-all">
+          <a href="${esc(d.lan_url)}" target="_blank">${esc(d.lan_url)}</a></div>
+        <div class="hint">dùng khi điện thoại cùng WiFi</div></div>
+      <div class="card"><h3>Cloudflare</h3>
+        ${d.url ? `<div class="mono" style="font-size:14px;word-break:break-all">
+            <a href="${esc(d.url)}" target="_blank">${esc(d.url)}</a></div>
+          <div class="hint">🟢 chạy ${esc(up(d.uptime))}</div>`
+        : `<div class="stat" style="font-size:18px">chưa mở</div>
+          <div class="hint">mở để vào panel từ ngoài mạng</div>`}</div>
+      <div class="card"><h3>cloudflared</h3>
+        <div class="stat" style="font-size:18px">${d.installed ? '✅ có' : '❌ chưa'}</div>
+        <div class="hint">${esc(d.version || 'chưa cài binary')}</div></div>
+      <div class="card"><h3>API v4</h3><div class="stat">${num(d.endpoints)}<small> endpoint</small></div>
+        <div class="hint">cổng ${num(d.port)} · SPA một file</div></div>
+    </div>
+    <div class="card"><h3>Điều khiển</h3>
+      <div class="row">
+        <button class="btn" onclick="webTunnel('on')" ${d.running?'disabled':''}>☁️ Mở tunnel</button>
+        <button class="btn dgr" onclick="webTunnel('off')" ${d.running?'':'disabled'}>⛔ Tắt tunnel</button>
+        <button class="btn" onclick="webTunnel('install')" ${d.installed?'disabled':''}>⬇️ Cài cloudflared</button>
+        <button class="btn" onclick="webQr()">🔗 QR cho điện thoại</button></div>
+      <div class="hint" style="margin-top:10px">
+        Mở tunnel là đưa panel ra Internet: ai có link đều tới được trang đăng nhập.
+        ${d.starting ? '<b>Đang mở tunnel…</b> panel tự cập nhật.' : ''}
+        ${d.log ? `<br>Log: <span class="mono">${esc(d.log)}</span>` : ''}</div>
+    </div>
+    ${d.url ? `<div class="card" style="margin-top:14px"><h3>Mở panel</h3>
+      <div class="row"><a class="btn pri" href="${esc(d.url)}" target="_blank">↗ Cloudflare panel</a></div>
+      <div class="hint" style="margin-top:8px">Kết nối ngoài mạng bằng Cloudflare link. <span class="mono">⌘web qr</span> nhận QR đăng nhập khi gõ trong Zalo.</div></div>` : ''}
+    <div class="card" style="margin-top:14px"><h3>Địa chỉ bot của panel</h3>
+      <div class="mono" style="font-size:13.5px;word-break:break-all">${esc(S.apiBase || '(rỗng = panel đang chạy ngay trên máy bot)')}</div>
+      <div class="row" style="margin-top:10px">
+        ${d.url ? `<button class="btn" data-url="${esc(d.url)}"
+          onclick="useApiBase(this.dataset.url)">📌 Dùng link Cloudflare</button>` : ''}
+        <button class="btn" onclick="useApiBase('')">🏠 Dùng cùng máy</button>
+        <button class="btn" onclick="setApiBase(S.apiBase);toast('Đã ghim địa chỉ này','g')">💾 Ghim lại</button></div>
+      <div class="hint" style="margin-top:10px">
+        Panel có thể được host TĨNH ở nơi khác (GitHub Pages, Cloudflare Pages…) rồi trỏ về bot
+        qua địa chỉ này — mở bằng <span class="mono">?api=https://…</span> cũng được, panel tự nhớ.
+        Điều kiện: bot phải đang mở tunnel thì trang ngoài mới tới được.
+        <br><b>Lưu ý:</b> link <span class="mono">raw.githubusercontent.com</span> KHÔNG dùng để mở panel được —
+        GitHub trả về dạng văn bản thuần nên trình duyệt hiện source, phải host qua Pages hoặc dịch vụ tĩnh khác.
+      </div></div>`;
+};
+
+/* Đổi địa chỉ bot ngay trong lúc đang chạy (dùng cho panel host tĩnh). */
+function useApiBase(url) {
+  setApiBase(url || '');
+  S.ov = null;
+  toast(url ? `✅ Gọi bot qua ${S.apiBase}` : '🏠 Gọi bot ở cùng máy', 'g');
+  draw();
+}
+
+async function webTunnel(action) {
+  const label = { on: 'mở tunnel', off: 'tắt tunnel', install: 'cài cloudflared' }[action];
+  toast(`Đang ${label}…`, '');
+  try {
+    const d = await api('/api/v4/web/tunnel', { method: 'POST', body: { action } });
+    toast(d.message || 'Xong', d.ok === false ? 'r' : 'g');
+  } catch (e) { toast(e.message, 'r'); }
+  draw();
+}
+function webQr() { toast('Trong Zalo gõ: ⌘web qr (bot gửi ảnh QR đăng nhập)', ''); }
+
+V.sys = async () => {
+  const d = await api('/api/system');
+  const p = d.process || {}, r = d.resources || {};
+  const dk = r.disk || {};                 // /api/system đặt 'disk' TRONG resources
+  const cm = d.commands || {};
+  const libs = d.libs || {}, caches = d.caches || {};
+  const bad = cm.module_errors || [];
+  const th = d.threads_running || [];
+  return `
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="card"><h3>Tiến trình</h3><div class="stat mono" style="font-size:20px">PID ${num(p.pid)}</div>
+        <div class="hint">Python ${esc(p.python||'—')} · ${esc(p.platform||'—')}</div></div>
+      <div class="card"><h3>RAM</h3><div class="stat">${num(r.mem_mb)}<small> MB</small></div>
+        <div class="hint">${num(r.threads)} thread · CPU ${num(r.cpu_pct)}%</div></div>
+      <div class="card"><h3>Ổ đĩa</h3><div class="stat">${num(dk.used)}<small> / ${num(dk.total)} GB</small></div>
+        <div class="hint">còn ${num(dk.free)} GB</div>
+        <div class="bar"><i style="width:${dk.pct||0}%"></i></div></div>
+      <div class="card"><h3>Tải hệ thống</h3><div class="stat">${num(r.cores)}<small> nhân</small></div>
+        <div class="hint">${(r.load||[]).map(x=>num(x)).join(' · ') || '—'}</div></div>
+    </div>
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="card"><h3>Lệnh</h3><div class="stat">${num(cm.total)}</div>
+        <div class="hint">${num(cm.enabled)} đang bật · ${num(cm.disabled)} đang tắt</div></div>
+      <div class="card"><h3>Module</h3><div class="stat">${num(cm.modules_ok)}</div>
+        <div class="hint">${num(cm.modules_failed)} module lỗi</div></div>
+      <div class="card"><h3>Thread đang chạy</h3><div class="stat">${num(th.length)}</div>
+        <div class="hint mono" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+          title="${esc(th.slice(0,18).join(', '))}">${esc(th.slice(0,3).join(', ')||'—')}</div></div>
+      <div class="card"><h3>Uptime</h3><div class="stat mono">${Math.floor((p.uptime_sec||0)/3600)}h${String(Math.floor((p.uptime_sec||0)%3600/60)).padStart(2,'0')}</div>
+        <div class="hint mono" title="${esc(p.cwd||'')}">${esc((p.cwd||'').split('/').slice(-1)[0]||'—')}</div></div>
+    </div>
+    ${bad.length ? `<div class="alert r"><span>🔴</span><div><b>${bad.length} module lệnh lỗi</b>
+      ${bad.map(x=>`<div class="mono" style="font-size:12px">${esc(x.module)}: ${esc(x.error)}</div>`).join('')}</div></div>` : ''}
+    <div class="grid g2">
+      <div class="card"><h3>Thư viện</h3>
+        <table><tbody>${Object.entries(libs).map(([k,v]) =>
+          `<tr><td class="mono">${esc(k)}</td><td class="num">${v?`<span class="tag g">${esc(v)}</span>`:'<span class="tag r">thiếu</span>'}</td></tr>`
+        ).join('') || '<tr><td class="hint">Không đọc được.</td></tr>'}</tbody></table></div>
+      <div class="card"><h3>Lệnh đang tắt${cm.disabled_list?.length ? ` (${cm.disabled_list.length})` : ''}</h3>
+        <div class="row" style="gap:6px">${(cm.disabled_list||[]).slice(0,40).map(x=>`<span class="tag a mono">${esc(x)}</span>`).join('')
+          || '<span class="hint">Không có lệnh nào bị tắt.</span>'}</div>
+        <h3 style="margin-top:16px">Cache theo mục đích</h3>
+        <table><tbody>${Object.entries(caches).map(([k,v]) =>
+          `<tr><td class="mono">${esc(k)}</td><td class="num">${num(v.files)} file</td><td class="num">${v.size_mb} MB</td></tr>`
+        ).join('') || '<tr><td class="hint">Không có dữ liệu.</td></tr>'}</tbody></table></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>Công cụ</h3><div class="row">
+      <button class="btn" onclick="selfCheck()">🩺 Chẩn đoán panel</button>
+      <button class="btn" onclick="census()">🧭 Bản đồ API</button>
+      <button class="btn" onclick="go('cache')">🗄 Xem cache & dọn</button>
+      <button class="btn" onclick="go('mybot')">🤖 Bot con</button>
+    </div></div>`;
+};
+
+/* ── ACTIONS ────────────────────────────────────────────────────── */
+async function draw() {
+  const view = $('#view');
+  view.innerHTML = '<div class="card"><div class="sk" style="width:38%"></div>' +
+    '<div class="sk" style="width:70%;margin-top:9px"></div>' +
+    '<div class="sk" style="width:52%;margin-top:9px"></div></div>';
+  try { view.innerHTML = await (V[S.view] || V.dash)(); }
+  catch (e) { view.innerHTML = `<div class="alert r"><span>🔴</span><div><b>Không tải được</b>${esc(e.message)}</div></div>`; }
+  if (S.view === 'welcome') {   // auto: trạng thái + dữ liệu nhóm đang chọn
+    wGroupChanged();
+  }
+}
+async function refresh() {
+  try { S.ov = await api('/api/v4/overview'); } catch (e) { /* hiện ở badge RTT */ }
+  const b = (S.ov||{}).bot || {};
+  if (b.name) { $('#bn').textContent = b.name; $('#wn').textContent = S.user || 'admin'; }
+  $('#wr').textContent = (S.role || '') + ' · ' + (b.uptime || '—');
+  $('#av').textContent = (S.user || 'A')[0].toUpperCase();
+  $('#live').innerHTML = `<span class="dot ${b.listening?'g':'r'}"></span> ${b.listening?'bot trực tuyến':'bot ngoại tuyến'}`;
+  $('#stamp').textContent = 'v4 · ' + new Date().toLocaleTimeString('vi-VN');
+  // badge cảnh báo trên sidebar
+  const l = (S.ov||{}).latency || {};
+  const nb = $('[data-b="latency"]');
+  if (nb) {
+    const slow = l.slow_count || 0;
+    nb.textContent = slow ? slow : '';
+    nb.className = 'bdg ' + (slow > 5 ? 'd' : slow ? 'w' : '');
+  }
+  const cb = $('[data-b="cache"]');
+  const c = (S.ov||{}).cache || {};
+  if (cb) { cb.textContent = c.total_mb ? c.total_mb + 'M' : ''; cb.className = 'bdg'; }
+  // Lệnh: hiện SỐ ĐANG BẬT (kèm số tắt nếu có) — trước đây chỉ hiện tổng
+  const kmb = $('[data-b="cmds"]');
+  if (kmb) {
+    const on = b.cmd_enabled, off = b.cmd_disabled || 0;
+    if (typeof on === 'number') {
+      kmb.textContent = off ? `${on} bật · ${off} tắt` : `${on} bật`;
+      kmb.className = 'bdg ' + (off ? 'w' : '');
+    } else { kmb.textContent = ''; kmb.className = 'bdg'; }
+  }
+  // Đếm nhóm THẬT (1 lần/phiên; server đã cache nên rất nhẹ)
+  if (S.groupsN == null) {
+    try { S.groupsN = ((await api('/api/v4/groups')).groups || []).length; } catch (e) {}
+    const gb = $('[data-b="groups"]');
+    if (gb) { gb.textContent = S.groupsN ?? ''; gb.className = 'bdg'; }
+  }
+}
+function tick() { api('/api/v4/ping').catch(() => {}); refresh().then(() => { if (S.view === 'dash') draw(); }); }
+async function gcNow() {
+  try {
+    const d = await api('/api/v4/gc', { method: 'POST' });
+    toast(`Đã dọn ${num(d.removed)} file`, 'g');
+    S.ov = null; await refresh(); draw();
+  } catch (e) { toast(e.message, 'r'); }
+}
+async function pfxSave() {
+  const el = $('#pnew');
+  const v = (el?.value || '').trim();
+  if (!v) { toast('Gõ prefix mới (vd ! hoặc #)', 'r'); return; }
+  try {
+    const d = await api('/api/v4/prefix', { method: 'POST', body: { prefix: v } });
+    toast(`Đã đổi prefix “${d.old}” → “${d.prefix}”`, 'g');
+    if (el) el.value = '';
+    S.ov = null; await refresh(); draw();
+  } catch (e) { toast(e.message, 'r'); }
+}
+async function resetStats() {
+  if (!confirm('Xoá toàn bộ số liệu thời gian phản hồi?')) return;
+  try { await api('/api/cmd-stats/reset', { method: 'POST' }); toast('Đã xoá số liệu', 'g'); S.ov = null; refresh(); draw(); }
+  catch (e) { toast(e.message, 'r'); }
+}
+/* Hai endpoint khác nhau, đúng như thiết kế của bot:
+   • mặc định toàn bot → /api/gif/theme/set {target:'all', theme}
+   • ghim riêng 1 lệnh → /api/gif/set {cmd, theme}  (khoá ghim là "lệnh:<cmd>") */
+async function setTheme(scope, theme, cmd, val) {
+  try {
+    if (cmd) {
+      await api('/api/gif/set', { method: 'POST', body: { cmd, theme: val || '' } });
+      toast(val ? `Đã ghim mẫu “${val}” cho ${cmd}` : `${cmd} quay về mặc định`, 'g');
+    } else {
+      await api('/api/gif/theme/set', { method: 'POST', body: { target: 'all', theme } });
+      toast(theme === 'random' ? 'Đã đặt: ngẫu nhiên mỗi lần' : `Đã đặt mặc định: ${theme}`, 'g');
+    }
+    draw();
+  } catch (e) { toast(e.message, 'r'); }
+}
+/* Công tắc mới: đổi trạng thái NGAY trên giao diện (không chờ mạng), nếu
+   máy chủ từ chối thì tự trả lại như cũ — bấm là thấy phản hồi tức thì. */
+async function toggleCmd(name, el) {
+  const on = !el.classList.contains('on');
+  el.classList.toggle('on', on);
+  el.setAttribute('aria-checked', on ? 'true' : 'false');
+  try {
+    await api('/api/commands/toggle', { method: 'POST', body: { name, enabled: on } });
+    const pfx = (S.ov?.bot?.prefix) || '⌘';
+    toast(`${pfx}${name}: ${on ? 'đã bật' : 'đã tắt'}`, 'g');
+  } catch (e) {
+    el.classList.toggle('on', !on);
+    el.setAttribute('aria-checked', on ? 'false' : 'true');
+    toast(e.message, 'r');
+  }
+}
+async function reloadCmds() {
+  try { const d = await api('/api/commands/reload', { method: 'POST' }); toast(d.message || 'Đã nạp lại', 'g'); draw(); }
+  catch (e) { toast(e.message, 'r'); }
+}
+async function selfCheck() {
+  try {
+    const d = await api('/api/v4/selfcheck');
+    toast(`Thread ${d.threads} · status ${d.status_ms} ms · log đệm ${d.log?.buffered ?? '?'}`, 'g');
+  } catch (e) { toast(e.message, 'r'); }
+}
+async function census() {
+  try {
+    const d = await api('/api/v4/census');
+    toast(`API: ${d.total} route · v4 ${d.v4} · còn lại ${d.legacy}`, '');
+  } catch (e) { toast(e.message, 'r'); }
+}
+
+/* ── MODAL (dùng chung cho mọi form sửa) ───────────────────────── */
+function modal(title, html, okLabel, onOk) {
+  const m = $('#mdl');
+  $('#mbox').innerHTML = `<h3>${esc(title)}</h3>${html}
+    <div class="row" style="justify-content:flex-end;margin-top:15px">
+      <button class="btn" onclick="modalClose()">Huỷ</button>
+      <button class="btn pri" id="m-ok">${esc(okLabel)}</button></div>`;
+  m.classList.add('on');
+  $('#m-ok').onclick = () => { if (onOk() !== false) modalClose(); };
+}
+function modalClose() {
+  const m = $('#mdl'); m.classList.remove('on'); $('#mbox').innerHTML = '';
+  // Phiên QR gắn với modal — đóng modal là dừng poll, khỏi chạy nền vô ích.
+  if (S._qrTimer) { clearInterval(S._qrTimer); S._qrTimer = null; }
+  S._qrSession = '';
+}
+$('#mdl').addEventListener('click', e => { if (e.target.id === 'mdl') modalClose(); });
+
+/* ── WELCOME STUDIO ───────────────────────────────────────────── */
+let _wTimer = null, _wMemTimer = null;
+/* Mọi tham số card đều TỰ ĐỌC: tên nhóm + số thành viên từ nhóm đang chọn,
+   tên/avatar thành viên từ THÀNH VIÊN THẬT chọn trong dropdown, avatar Zalo
+   của thành viên khi bot gửi thật. Người dùng không gõ tay tham số nào. */
+function wGroupOption() {
+  const sel = $('#w-grp');
+  return sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex] : null;
+}
+function wMemberOption() {
+  const sel = $('#w-mem');
+  return sel && sel.selectedIndex > 0 ? sel.options[sel.selectedIndex] : null;
+}
+function wParams(withToken) {
+  const p = new URLSearchParams();
+  const g = wGroupOption(), m = wMemberOption();
+  const av = $('#w-avst')?.dataset.av;
+  p.set('name', (m && m.value ? m.dataset.n : 'Thành viên'));
+  p.set('group', (g && g.dataset.n) || '');
+  if (m && m.dataset.g !== undefined && m.dataset.g !== '') p.set('gender', m.dataset.g);
+  if (g && g.dataset.t) p.set('total', g.dataset.t);
+  p.set('mode', S.wcMode || 'gif');
+  if ($('#w-leave')?.value) p.set('leave', '1');
+  if (av) p.set('avatar', av);
+  else if (m && m.dataset.av) p.set('avatar', m.dataset.av);
+  if (withToken) p.set('token', S.token);
+  return p;
+}
+/* Đọc THÀNH VIÊN THẬT của nhóm (tên + avatar từ Zalo) — 1 call/nhóm,
+   server trả cache trước rồi nạp ở nền nên panel không bị treo. */
+function wLoadMembers(tid) {
+  if (_wMemTimer) { clearTimeout(_wMemTimer); _wMemTimer = null; }
+  const st = $('#w-memst'), sel = $('#w-mem');
+  if (!tid || !sel) return;
+  let tries = 0;
+  const run = async () => {
+    try {
+      const d = await api('/api/v4/group/members?tid=' + encodeURIComponent(tid));
+      const ms = d.members || [];
+      sel.innerHTML = '<option value="">— tự đọc khi có sự kiện —</option>'
+        + ms.map((m, i) => `<option value="${esc(m.id)}" data-n="${esc(m.name)}"
+            data-av="${esc(m.avatar || '')}">${esc(m.name)}</option>`).join('');
+      if (st) st.textContent = ms.length
+        ? `Đã đọc ${ms.length} thành viên thật từ Zalo.`
+        : 'Đang đọc thành viên từ Zalo…';
+      if (!ms.length && ++tries < 6) _wMemTimer = setTimeout(run, 1500);
+    } catch (e) { if (st) st.textContent = 'Không đọc được thành viên: ' + e.message; }
+  };
+  run();
+}
+function wMemberPicked() {
+  const m = wMemberOption();
+  const el = $('#w-a-name');
+  if (el) el.textContent = m && m.value ? m.dataset.n : '—';
+  wPreview(1);
+}
+function wGroupChanged() {
+  const g = wGroupOption();
+  if ($('#w-a-gname')) $('#w-a-gname').textContent = (g && g.dataset.n) || '—';
+  if ($('#w-a-gtotal')) $('#w-a-gtotal').textContent = (g && g.dataset.t) || '—';
+  if ($('#w-a-name')) $('#w-a-name').textContent = '—';
+  wLoadMembers(g && g.value);
+  wState();
+  wPreview(1);
+}
+function wPreview(now) {
+  if (_wTimer) clearTimeout(_wTimer);
+  const run = () => {
+    const img = $('#w-prev'); if (!img) return;
+    img.src = apiUrl('/api/v4/welcome/preview?' + wParams(true).toString() + '&_=' + Date.now());
+  };
+  if (now) run(); else _wTimer = setTimeout(run, 400);
+}
+function wUpload(inp) {
+  const f = inp.files && inp.files[0];
+  if (!f) return;
+  if (f.size > 2500000) return toast('Ảnh quá lớn (tối đa 2.5MB)', 'r');
+  const r = new FileReader();
+  r.onload = async () => {
+    try {
+      const d = await api('/api/v4/welcome/avatar', { method: 'POST', body: { data: r.result } });
+      const st = $('#w-avst');
+      st.dataset.av = d.avatar;
+      st.textContent = 'Đang dùng avatar tải lên: ' + d.avatar;
+      toast('Đã nạp avatar', 'g'); wPreview(1);
+    } catch (e) { toast(e.message, 'r'); }
+  };
+  r.readAsDataURL(f);
+}
+function wClearAv() {
+  const st = $('#w-avst');
+  if (st) { delete st.dataset.av; st.textContent = 'Chưa chọn — khi bot gửi thật, card dùng avatar Zalo thật của thành viên.'; }
+  const i = $('#w-av'); if (i) i.value = '';
+  wPreview(1);
+}
+function wRandom() {
+  // Ngẫu nhiên CHỌN THÀNH VIÊN THẬT (không bịa tên) + sự kiện ngẫu nhiên.
+  const sel = $('#w-mem');
+  if (sel && sel.options.length > 1) {
+    sel.selectedIndex = 1 + Math.floor(Math.random() * (sel.options.length - 1));
+  }
+  if ($('#w-leave')) $('#w-leave').value = Math.random() < 0.5 ? '1' : '';
+  wMemberPicked();
+}
+/* Trạng thái welcome của nhóm đang chọn — để bạn KIỂM CHỨNG ngay trên panel
+   thay vì phải gõ lệnh trong chat rồi đoán. */
+async function wState() {
+  const sel = $('#w-grp'), el = $('#w-state'), gel = $('#w-gstate');
+  if (!el) return;
+  if (!sel || !sel.value) { el.innerHTML = '<span class="dot a"></span> chưa có nhóm'; return; }
+  try {
+    const d = await api('/api/v4/welcome/settings?group=' + encodeURIComponent(sel.value));
+    S.wcMode = d.mode || 'gif';
+    el.innerHTML = `<span class="dot ${d.enabled ? 'g' : 'r'}"></span> `
+      + (d.enabled ? 'đang BẬT card' : 'đang TẮT card')
+      + (d.explicit == null ? ' (mặc định)' : ' (đặt tay)');
+    if (gel) gel.innerHTML = `<span class="dot ${d.enabled_all ? 'g' : 'r'}"></span> `
+      + (d.enabled_all ? 'toàn cục: BẬT' : 'toàn cục: TẮT');
+    const am = $('#w-a-mode');
+    if (am) am.textContent = (d.mode === 'image' ? '🖼️ Ảnh tĩnh' : '🎬 GIF · mẫu ngẫu nhiên');
+  } catch (e) { el.innerHTML = '<span class="dot r"></span> ' + esc(e.message); }
+}
+async function wToggleAll(on) {
+  try {
+    await api('/api/v4/welcome/toggle_all', { method: 'POST', body: { on: !!on } });
+    toast(on ? 'Đã BẬT card welcome cho MỌI nhóm' : 'Đã TẮT card welcome cho MỌI nhóm', 'g');
+    wState();
+  } catch (e) { toast(e.message, 'r'); }
+}
+async function wToggle(on) {
+  const sel = $('#w-grp');
+  if (!sel || !sel.value) return toast('Chưa chọn nhóm', 'r');
+  try {
+    await api('/api/v4/welcome/toggle', { method: 'POST', body: { group: sel.value, on: !!on } });
+    toast((on ? 'Đã BẬT' : 'Đã TẮT') + ' card welcome cho nhóm này', 'g');
+    wState();
+  } catch (e) { toast(e.message, 'r'); }
+}
+async function forceGroups() {
+  try { S.wcGroups = (await api('/api/v4/groups?force=1')).groups || []; toast('Đã nạp lại tên nhóm', 'g'); draw(); }
+  catch (e) { toast(e.message, 'r'); }
+}
+async function wSend() {
+  const sel = $('#w-grp');
+  if (!sel || !sel.value) return toast('Chưa chọn nhóm đích', 'r');
+  const opt = sel.options[sel.selectedIndex], mem = wMemberOption();
+  const body = {
+    group: sel.value,
+    name: (mem && mem.value ? mem.dataset.n : 'Thành viên'),
+    gname: opt.dataset.n || sel.value,
+    gtotal: Number(opt.dataset.t) || 0,
+    leave: !!$('#w-leave')?.value,
+    mode: S.wcMode || 'gif',
+    gender: (mem && mem.dataset.g) || '',
+    avatar: $('#w-avst')?.dataset.av || (mem && mem.dataset.av) || '',
+  };
+  if (!confirm(`Gửi THẬT card vào nhóm “${body.gname}”?`)) return;
+  try {
+    await api('/api/v4/welcome/send', { method: 'POST', body });
+    toast('Đã gửi card vào ' + body.gname, 'g');
+  } catch (e) { toast(e.message, 'r'); }
+}
+
+/* ── COMMAND PALETTE ────────────────────────────────────────────── */
+const PAL = [
+  ['Dashboard','▦', () => go('dash')],
+  ['Độ trễ lệnh','⚡', () => go('latency')],
+  ['Cache & dọn ngay','🗄', () => go('cache')],
+  ['GIF Studio','🎨', () => go('gif')],
+  ['Welcome Studio','👋', () => go('welcome')],
+  ['Nạp lại danh sách nhóm','⟳', forceGroups],
+  ['Lệnh mới thêm','🆕', () => go('cmds')],
+  ['Bot con','🤖', () => go('mybot')],
+  ['Danh sách lệnh','⌘', () => go('cmds')],
+  ['Log trực tiếp','≡', () => go('log')],
+  ['Hệ thống','⚙', () => go('sys')],
+  ['Dọn cache ngay','🧹', gcNow],
+  ['Xoá số liệu độ trễ','🗑', resetStats],
+  ['Đổi sáng/tối','◐', toggleTheme],
+  ['Chẩn đoán panel','🩺', selfCheck],
+  ['Bản đồ API','🧭', census],
+  ['Đăng xuất','⏻', () => logout()],
+];
+let palIdx = 0, palHits = [];
+function palOpen() { $('#pal').classList.add('on'); $('#pq').value=''; palRender(''); $('#pq').focus(); }
+function palClose() { $('#pal').classList.remove('on'); }
+function palRender(q) {
+  q = (q||'').toLowerCase();
+  palHits = PAL.filter(p => !q || p[0].toLowerCase().includes(q));
+  palIdx = 0;
+  $('#pl').innerHTML = palHits.map((p,i) =>
+    `<div class="pi ${i===0?'sel':''}" data-i="${i}"><span class="ic">${p[1]}</span>
+      <span>${esc(p[0])}</span><span class="ds">Enter</span></div>`).join('')
+    || '<div class="pi">Không có kết quả</div>';
+  $$('#pl .pi[data-i]').forEach(el => el.onclick = () => { const p = palHits[+el.dataset.i]; if (p) { palClose(); p[2](); } });
+}
+$('#pq').addEventListener('input', e => palRender(e.target.value));
+$('#pq').addEventListener('keydown', e => {
+  if (e.key === 'Escape') return palClose();
+  if (e.key === 'Enter') { const p = palHits[palIdx]; if (p) { palClose(); p[2](); } return; }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    palIdx = (palIdx + (e.key === 'ArrowDown' ? 1 : -1) + palHits.length) % palHits.length;
+    $$('#pl .pi[data-i]').forEach((el,i) => el.classList.toggle('sel', i === palIdx));
+  }
+});
+$('#pal').addEventListener('click', e => { if (e.target.id === 'pal') palClose(); });
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palOpen(); }
+  if (e.key === 'Escape') palClose();
+});
+
+/* ── THEME ──────────────────────────────────────────────────────── */
+function toggleTheme() {
+  const cur = document.documentElement.dataset.theme === 'day' ? 'aurora' : 'day';
+  document.documentElement.dataset.theme = cur;
+  localStorage.setItem('zbtm', cur);
+}
+document.documentElement.dataset.theme = localStorage.getItem('zbtm') || 'aurora';
+
+/* ── BOOT ───────────────────────────────────────────────────────── */
+function start() {
+  $('#login').style.display = 'none';
+  $('#app').classList.add('on');
+  renderNav();
+  renderMtab();
+  loadNewCmds();
+  const v = (location.hash || '#/dash').replace('#/', '');
+  if (S.timer) clearInterval(S.timer);
+  go(NAV.some(n => n[0] === v) ? v : 'dash');
+  tick();
+  S.timer = setInterval(tick, 4000);
+}
+$('#rf').onclick = () => { S.ov = null; tick(); toast('Đã làm mới', 'g'); };
+$('#theme').onclick = toggleTheme;
+$('#pal2').onclick = palOpen;
+$('#burger').onclick = () => $('#side').classList.toggle('open');
+window.addEventListener('hashchange', () => {
+  const v = location.hash.replace('#/', '');
+  if (v && v !== S.view) go(v);
+});
+window.go = go; window.gcNow = gcNow; window.resetStats = resetStats;
+window.setTheme = setTheme; window.toggleCmd = toggleCmd; window.reloadCmds = reloadCmds;
+window.selfCheck = selfCheck; window.census = census; window.draw = draw;
+window.filterCmds = filterCmds; window.logFilter = logFilter; window.logPause = logPause;
+window.modalClose = modalClose; window.wPreview = wPreview;
+window.wUpload = wUpload; window.wClearAv = wClearAv; window.wRandom = wRandom;
+window.wSend = wSend; window.forceGroups = forceGroups;
+window.wState = wState; window.wToggle = wToggle;
+window.toggleCat = toggleCat; window.toggleAllCats = toggleAllCats;
+window.webTunnel = webTunnel; window.webQr = webQr;
+window.useApiBase = useApiBase;
+window.actBot = actBot; window.delBot = delBot; window.giahanBot = giahanBot;
+window.addBotModal = addBotModal; window.ttlSave = ttlSave;
+window.addBotTab = addBotTab; window.qrAddStart = qrAddStart;
+window.reloginModal = reloginModal;
+window.addBotSubmit = addBotSubmit;
+/* Tay cầm gỡ lỗi: mở console gõ `ZB.S` để xem trạng thái, `ZB.api('/api/status')` để gọi thử. */
+window.ZB = { S, api, go, draw, refresh, toast, start,
+              apiBase: () => S.apiBase, setApiBase, testConn };
+if ($('#srv')) $('#srv').value = S.apiBase;      // hiện địa chỉ bot đang dùng
+if ($('#rem')) $('#rem').checked = S.remember;
+if (S.token) start();
+</script>
+</body>
+</html>
