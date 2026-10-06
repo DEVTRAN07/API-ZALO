@@ -334,6 +334,10 @@ details.catsec>summary .tag{margin-left:auto}
         <button class="btn" type="button" onclick="apiForget()">🗑 Quên địa chỉ đã lưu</button>
       </div>
       <div class="hint mono" id="srvState"></div>
+      <div class="hint">Panel mở ở <span class="mono">https</span> (GitHub Pages) thì
+        địa chỉ bot phải là <span class="mono">https</span> hoặc
+        <span class="mono">localhost</span> — trình duyệt chặn https gọi http
+        (trừ localhost). Trong nhà cứ mở thẳng panel của bot rồi bỏ trống ô này.</div>
     </div>
   </form>
 </div>
@@ -511,6 +515,18 @@ function advToggle() {
   a.hidden = !a.hidden;
   if (!a.hidden) { const el = $('#srv'); if (el) { el.value = S.apiBase; el.focus(); } }
 }
+/* Trang https KHÔNG gọi được API http (mixed content) — trừ localhost.
+   Đây là lý do THẬT khiến panel ở GitHub Pages không đăng nhập được:
+   Chrome chặn thẳng request tới http://192.168.x.x:5000. Nói rõ ra thay vì
+   để người dùng đoán "panel hỏng". */
+function apiBlocked(url) {
+  const v = String(url != null ? url : (S.apiBase || ''));
+  if (location.protocol !== 'https:') return false;   // cùng http → không chặn
+  if (!/^http:\/\//i.test(v)) return false;           // https hoặc cùng origin
+  const host = v.slice(7).split('/')[0].split(':')[0].toLowerCase();
+  return !['localhost', '127.0.0.1', '::1', '[::1]'].includes(host);
+}
+
 /* Xoá địa chỉ bot đã ghim (link cũ/hỏng) → quay về "cùng máy". */
 function apiForget() {
   try { localStorage.removeItem('zb_api'); } catch (e) {}
@@ -597,12 +613,19 @@ $('#lform').addEventListener('submit', async e => {
     if (srv && srv.value.trim()) setApiBase(srv.value);
     start();
   } catch (err) {
-    $('#lerr').textContent = err.message;
-    // Lỗi MẠNG (không phải sai mật khẩu) → mở luôn ô địa chỉ bot để sửa.
-    // Đây chính là thứ trước đây chặn panel GitHub Pages vào được bot.
-    if (!/Sai tài khoản|mật khẩu|Phiên đăng nhập|quyền|local_only/i.test(err.message)) {
-      advShow();
+    // Lỗi MẠNG (không phải sai mật khẩu) → nói rõ nguyên nhân + mở ô địa chỉ.
+    const net = !/Sai tài khoản|mật khẩu|Phiên đăng nhập|quyền|local_only/i.test(err.message);
+    if (net && apiBlocked()) {
+      $('#lerr').innerHTML = 'Trình duyệt CHẶN trang https gọi API http '
+        + '(mixed content): <span class="mono">' + esc(S.apiBase || '(rỗng)') + '</span>.'
+        + ' Hãy mở panel ngay trên máy chạy bot, hoặc dùng địa chỉ bot https.';
+    } else if (net && !S.apiBase) {
+      $('#lerr').textContent = 'Chưa biết địa chỉ bot — mở ô bên dưới để nhập, '
+        + 'hoặc quét QR từ lệnh ⌘web qr trong Zalo.';
+    } else {
+      $('#lerr').textContent = err.message;
     }
+    if (net) advShow();
   }
   b.disabled = false;
 });
@@ -1828,25 +1851,52 @@ async function termEnable() {
 
 V.web = async () => {
   const d = await api('/api/v4/web');
+  // Cảnh báo THẬT: trang này đang là https mà địa chỉ bot là http thì mọi
+  // request bị trình duyệt chặn — đúng lý do "panel ở GitHub không vào được".
+  const blocked = apiBlocked();
+  const warn = !blocked ? '' : `
+    <div class="alert r" style="margin-bottom:14px"><span>⚠️</span><div>
+      <b>Trình duyệt đang chặn kết nối tới bot (mixed content)</b>
+      Trang panel này chạy trên <span class="mono">https</span>, còn bot ở
+      <span class="mono">${esc(S.apiBase || '(rỗng)')}</span> — trình duyệt
+      luôn chặn https gọi http (trừ <span class="mono">localhost</span>).
+      <div class="row" style="margin-top:10px">
+        <a class="btn pri" href="${esc(d.lan_url)}">🏠 Mở panel trên máy chạy bot</a>
+        ${d.public_url ? `<a class="btn" href="${esc(d.pages_url)}?api=${encodeURIComponent(d.public_url)}">🌐 Dùng địa chỉ https có sẵn</a>` : ''}
+      </div>
+      <div class="hint" style="margin-top:8px">Muốn dùng được ngay tại đây: bot cần một
+        địa chỉ <span class="mono">https</span> trỏ về máy (Tailscale, domain +
+        reverse proxy…) rồi khai báo <span class="mono">ZALOBOT_PUBLIC_URL=https://…</span>
+        khi chạy bot, hoặc nhập địa chỉ đó ở
+        <span class="mono">⚙ Máy chủ bot khác…</span>.</div>
+    </div></div>`;
   return `
+    ${warn}
     <div class="grid g4" style="margin-bottom:14px">
+      <div class="card"><h3>Mở panel NGAY (LAN)</h3>
+        <div class="mono" style="font-size:13px;word-break:break-all">
+          <a href="${esc(d.lan_url)}">${esc(d.lan_url)}</a></div>
+        <div class="hint">panel do chính bot phục vụ — cùng origin, không bị
+          chặn, và <b>không cần địa chỉ bot</b></div>
+        <div class="row" style="margin-top:10px">
+          <a class="btn pri" href="${esc(d.lan_url)}">🏠 Mở panel LAN</a></div></div>
       <div class="card"><h3>GitHub Pages (24/7)</h3>
         <div class="mono" style="font-size:13px;word-break:break-all">
           <a href="${esc(d.pages_url)}" target="_blank">${esc(d.pages_url)}</a></div>
         <div class="hint">luôn mở được — bot tắt chỉ hiện "ngoại tuyến"</div>
         <div class="row" style="margin-top:10px">
-          <a class="btn pri" href="${esc(d.pages_url)}" target="_blank">↗ Mở panel</a>
-          <button class="btn" data-url="${esc(d.lan_url)}"
-            onclick="useApiBase(this.dataset.url);toast('Đã dùng '+this.dataset.url,'g')">📌 Dùng LAN này</button></div></div>
-      <div class="card"><h3>Trong mạng LAN</h3>
-        <div class="mono" style="font-size:14px;word-break:break-all">
-          <a href="${esc(d.lan_url)}" target="_blank">${esc(d.lan_url)}</a></div>
-        <div class="hint">dùng khi điện thoại cùng WiFi</div></div>
+          <a class="btn" href="${esc(d.pages_url)}" target="_blank">↗ Mở Pages</a></div>
+        <div class="hint">Pages gọi bot được chỉ khi địa chỉ bot là
+          <span class="mono">https</span> (hoặc localhost) — xem cảnh báo trên.</div></div>
       <div class="card"><h3>Điện thoại</h3>
         <div class="stat" style="font-size:18px">⌘web qr</div>
         <div class="hint">gõ trong Zalo — bot gửi QR quét là vào thẳng panel kèm địa chỉ bot</div></div>
       <div class="card"><h3>API v4</h3><div class="stat">${num(d.endpoints)}<small> endpoint</small></div>
         <div class="hint">cổng ${num(d.port)} · SPA một file</div></div>
+      <div class="card"><h3>Terminal</h3><div class="stat" style="font-size:18px">${S.termState && S.termState.enabled ? 'sẵn sàng' : 'xem tab →'}</div>
+        <div class="hint">chạy lệnh/git pull/khởi động lại bot ngay trong panel</div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" onclick="go('term')">▮ Mở Terminal</button></div></div>
     </div>
     <div class="card"><h3>Địa chỉ bot của panel</h3>
       <div class="mono" style="font-size:13.5px;word-break:break-all">${esc(S.apiBase || '(rỗng = panel đang chạy ngay trên máy bot)')}</div>
