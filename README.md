@@ -39,6 +39,19 @@ export ZALOBOT_DATA_URL=http://127.0.0.1:8080/data
 # hoặc ghi vào DATA/remote_data.json: {"base": "..."}
 ```
 
+### Repo dữ liệu đang để PRIVATE thì sao?
+
+`raw.githubusercontent.com` **trả 404 với repo private** (đã gặp thật: push
+xong bot vẫn không tải được gì). Khi đó bot tự chuyển sang đường **git**:
+clone/pull repo này bằng credential sẵn có của máy (keychain/token đã dùng
+để push) — không cần token riêng, và chỉ truyền phần file đã đổi.
+
+Nếu muốn dùng đường HTTP (nhanh hơn cho máy mới), chọn một trong hai:
+
+* đổi repo này sang **public** — dữ liệu chỉ là ảnh preview, không có bí mật;
+* hoặc cấp token đọc: `export ZALOBOT_DATA_TOKEN=<token>` (fine-grained,
+  chỉ quyền *Contents: Read*).
+
 ## Đẩy dữ liệu lên đây
 
 Chạy trong repo **ZALO-BOT** (nơi có sẵn dữ liệu đã dựng):
