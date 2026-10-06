@@ -1909,9 +1909,13 @@ V.web = async () => {
       <div class="card"><h3>Điều khiển từ xa (HTTPS)</h3>
         ${d.public_url
           ? `<div class="mono" style="font-size:13px;word-break:break-all">${esc(d.public_url)}</div>
-             <div class="hint">địa chỉ https trỏ về máy bot — bot đã TỰ CÔNG BỐ lên kho
-               dữ liệu nên panel ở Pages mở TRẦN (không ?api=) cũng tự tìm ra bot;
-               đăng nhập chỉ cần tài khoản + mật khẩu</div>
+             <div class="hint">địa chỉ https trỏ về máy bot — panel ở Pages mở TRẦN
+               (không ?api=) tự tìm ra bot; đăng nhập chỉ cần tài khoản + mật khẩu</div>
+             <div class="hint" style="margin-top:6px">📣 ${d.published_synced
+               ? `<b>✅ Đã công bố</b> lên kho dữ liệu${d.published_ts ? ` · lần cuối đổi <b>${new Date(d.published_ts*1000).toLocaleString('vi-VN')}</b>` : ''}`
+               : (d.published_url
+                 ? `<b>⏳ Chưa đồng bộ</b> — kho đang lưu <span class="mono">${esc(d.published_url)}</span>, đang đẩy lại (CDN raw chậm vài phút là bình thường)`
+                 : '<b>⏳ Đang công bố</b> lên kho dữ liệu lần đầu… (nếu git/credential lỗi sẽ không đẩy được — xem log bot)')}${d.public_updated ? ` · ghim lúc <b>${new Date(d.public_updated*1000).toLocaleString('vi-VN')}</b>` : ''}</div>
              <div class="row" style="margin-top:10px">
                <a class="btn pri" target="_blank"
                  href="${esc(d.pages_url)}?api=${encodeURIComponent(d.public_url)}">↗ Mở panel từ xa</a>
@@ -1924,6 +1928,8 @@ V.web = async () => {
                  src="${apiUrl('/api/v4/web/qr')}?token=${encodeURIComponent(S.token)}&_=${Date.now()}"></div>`
           : `<div class="hint">Chưa có — panel ở Pages (https) không gọi được
                <span class="mono">http://192.168.x.x</span>.</div>
+             ${d.published_url ? `<div class="hint" style="margin-top:6px">Kho dữ liệu còn lưu địa chỉ cũ
+               <span class="mono">${esc(d.published_url)}</span>${d.published_ts ? ` (đổi <b>${new Date(d.published_ts*1000).toLocaleString('vi-VN')}</b>)` : ''} — ghim lại để cập nhật.</div>` : ''}
              <input class="i mono" id="wpub" placeholder="https://may-bot.example.ts.net"
                style="font-size:12.5px;margin-top:8px">
              <div class="row" style="margin-top:8px">
