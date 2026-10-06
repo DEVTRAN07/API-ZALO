@@ -1888,6 +1888,24 @@ V.web = async () => {
           <a class="btn" href="${esc(d.pages_url)}" target="_blank">↗ Mở Pages</a></div>
         <div class="hint">Pages gọi bot được chỉ khi địa chỉ bot là
           <span class="mono">https</span> (hoặc localhost) — xem cảnh báo trên.</div></div>
+      <div class="card"><h3>Điều khiển từ xa (HTTPS)</h3>
+        ${d.public_url
+          ? `<div class="mono" style="font-size:13px;word-break:break-all">${esc(d.public_url)}</div>
+             <div class="hint">địa chỉ https trỏ về máy bot — panel ở Pages dùng được địa chỉ này</div>
+             <div class="row" style="margin-top:10px">
+               <a class="btn pri" target="_blank"
+                 href="${esc(d.pages_url)}?api=${encodeURIComponent(d.public_url)}">↗ Mở panel từ xa</a>
+               <button class="btn" onclick="webPublic('')">🧹 Xoá</button></div>`
+          : `<div class="hint">Chưa có — panel ở Pages (https) không gọi được
+               <span class="mono">http://192.168.x.x</span>.</div>
+             <input class="i mono" id="wpub" placeholder="https://may-bot.example.ts.net"
+               style="font-size:12.5px;margin-top:8px">
+             <div class="row" style="margin-top:8px">
+               <button class="btn" onclick="webPublic(document.getElementById('wpub').value)">🔐 Ghim địa chỉ</button></div>
+             <div class="hint">Tailscale: <span class="mono">tailscale serve --bg ${num(d.port)}</span>
+               rồi dùng tên miền <span class="mono">*.ts.net</span> — hoặc domain +
+               reverse proxy của bạn.</div>`}
+      </div>
       <div class="card"><h3>Điện thoại</h3>
         <div class="stat" style="font-size:18px">⌘web qr</div>
         <div class="hint">gõ trong Zalo — bot gửi QR quét là vào thẳng panel kèm địa chỉ bot</div></div>
@@ -1916,6 +1934,17 @@ V.web = async () => {
         để mở panel được — GitHub trả về dạng văn bản thuần nên trình duyệt hiện source;
         panel nằm ở địa chỉ Pages ở trên.</div></div>`;
 };
+
+/* Ghim/xoá địa chỉ HTTPS công khai — để panel ở Pages điều khiển được bot
+   từ ngoài mạng LAN (trình duyệt chặn https→http nên bắt buộc phải https). */
+async function webPublic(url) {
+  try {
+    const d = await api('/api/v4/web/public',
+      { method: 'POST', body: { url: String(url || '').trim() } });
+    toast(d.public_url ? '🔐 Đã ghim ' + d.public_url : '🧹 Đã xoá địa chỉ HTTPS', 'g');
+    draw();
+  } catch (e) { toast('🔴 ' + e.message, 'err'); }
+}
 
 /* Đổi địa chỉ bot ngay trong lúc đang chạy (dùng cho panel host tĩnh). */
 function useApiBase(url) {
@@ -2375,6 +2404,7 @@ window.addBotSubmit = addBotSubmit;
 window.termRun = termRun; window.termSpawn = termSpawn; window.termTail = termTail;
 window.termQuick = termQuick; window.termClear = termClear; window.termEnable = termEnable;
 window.advToggle = advToggle; window.apiForget = apiForget;
+window.webPublic = webPublic;
 /* Tay cầm gỡ lỗi: mở console gõ `ZB.S` để xem trạng thái, `ZB.api('/api/status')` để gọi thử. */
 window.ZB = { S, api, go, draw, refresh, toast, start,
               apiBase: () => S.apiBase, setApiBase, testConn };
