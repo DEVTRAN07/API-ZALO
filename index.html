@@ -597,8 +597,23 @@ function rtt(v, ok) {
 }
 
 /* ── AUTH ───────────────────────────────────────────────────────── */
-$('#lform').addEventListener('submit', async e => {
-  e.preventDefault();
+/* Panel Pages TRẦN (không ?api=) vẫn phải vào được chỉ bằng tk/mk: khi
+   chưa biết địa chỉ bot, panel tự dò `data/bot_address.json` trên kho dữ
+   liệu API-ZALO (bot ghim địa chỉ https là bot tự công bố lên đó). */
+async function discoverBot() {
+  try {
+    const r = await fetch('https://raw.githubusercontent.com/DEVTRAN07/API-ZALO/main/data/bot_address.json',
+      { cache: 'no-store' });
+    if (!r.ok) return '';
+    const j = await r.json();
+    const u = String((j && j.url) || '').trim();
+    if (!/^https:\/\//i.test(u)) return '';       // http sẽ bị chặn — đừng đeo vào
+    setApiBase(u);
+    return u;
+  } catch (e) { return ''; }
+}
+$('#lform').addEventListener('submit', e => { e.preventDefault(); attemptLogin(false); });
+async function attemptLogin(isRetry) {
   const b = $('#lbtn'); b.disabled = true; $('#lerr').textContent = '';
   try {
     const d = await api('/api/login', { method: 'POST', body: { username: $('#u').value, password: $('#p').value } });
@@ -619,16 +634,19 @@ $('#lform').addEventListener('submit', async e => {
       $('#lerr').innerHTML = 'Trình duyệt CHẶN trang https gọi API http '
         + '(mixed content): <span class="mono">' + esc(S.apiBase || '(rỗng)') + '</span>.'
         + ' Hãy mở panel ngay trên máy chạy bot, hoặc dùng địa chỉ bot https.';
-    } else if (net && !S.apiBase) {
-      $('#lerr').textContent = 'Chưa biết địa chỉ bot — mở ô bên dưới để nhập, '
-        + 'hoặc quét QR từ lệnh ⌘web qr trong Zalo.';
+    } else if (net && !S.apiBase && !isRetry) {
+      // Chưa biết bot ở đâu → tự dò qua kho dữ liệu rồi thử lại ĐÚNG MỘT lần.
+      $('#lerr').textContent = 'Đang tự tìm địa chỉ bot qua kho dữ liệu (GitHub)…';
+      if (await discoverBot()) { b.disabled = false; return attemptLogin(true); }
+      $('#lerr').textContent = 'Chưa tự tìm ra bot (bot off hoặc chưa ghim địa chỉ https).'
+        + ' Bấm ⚙ Máy chủ bot khác… để nhập, hoặc quét QR từ lệnh ⌘web qr trong Zalo.';
     } else {
       $('#lerr').textContent = err.message;
     }
     if (net) advShow();
   }
   b.disabled = false;
-});
+}
 $('#out').addEventListener('click', () => logout());
 function logout(silent) {
   if (S.token) api('/api/logout', { method: 'POST', body: { token: S.token } }).catch(() => {});
@@ -1891,11 +1909,19 @@ V.web = async () => {
       <div class="card"><h3>Điều khiển từ xa (HTTPS)</h3>
         ${d.public_url
           ? `<div class="mono" style="font-size:13px;word-break:break-all">${esc(d.public_url)}</div>
-             <div class="hint">địa chỉ https trỏ về máy bot — panel ở Pages dùng được địa chỉ này</div>
+             <div class="hint">địa chỉ https trỏ về máy bot — bot đã TỰ CÔNG BỐ lên kho
+               dữ liệu nên panel ở Pages mở TRẦN (không ?api=) cũng tự tìm ra bot;
+               đăng nhập chỉ cần tài khoản + mật khẩu</div>
              <div class="row" style="margin-top:10px">
                <a class="btn pri" target="_blank"
                  href="${esc(d.pages_url)}?api=${encodeURIComponent(d.public_url)}">↗ Mở panel từ xa</a>
-               <button class="btn" onclick="webPublic('')">🧹 Xoá</button></div>`
+               <button class="btn" onclick="var el=document.getElementById('wpubqr');
+                 el.style.display = el.style.display==='none' ? 'block' : 'none'">🔳 QR</button>
+               <button class="btn" onclick="webPublic('')">🧹 Xoá</button></div>
+             <div id="wpubqr" style="display:none;margin-top:10px;text-align:center">
+               <img alt="QR mở panel" style="width:190px;image-rendering:pixelated;
+                 background:#fff;padding:6px;border-radius:8px"
+                 src="${apiUrl('/api/v4/web/qr')}?token=${encodeURIComponent(S.token)}&_=${Date.now()}"></div>`
           : `<div class="hint">Chưa có — panel ở Pages (https) không gọi được
                <span class="mono">http://192.168.x.x</span>.</div>
              <input class="i mono" id="wpub" placeholder="https://may-bot.example.ts.net"
@@ -1904,7 +1930,8 @@ V.web = async () => {
                <button class="btn" onclick="webPublic(document.getElementById('wpub').value)">🔐 Ghim địa chỉ</button></div>
              <div class="hint">Tailscale: <span class="mono">tailscale serve --bg ${num(d.port)}</span>
                rồi dùng tên miền <span class="mono">*.ts.net</span> — hoặc domain +
-               reverse proxy của bạn.</div>`}
+               reverse proxy của bạn. Sau khi ghim, bot tự công bố địa chỉ này lên
+               kho dữ liệu để panel ở Pages tự tìm ra (không cần nhập gì nữa).</div>`}
       </div>
       <div class="card"><h3>Điện thoại</h3>
         <div class="stat" style="font-size:18px">⌘web qr</div>
