@@ -213,6 +213,15 @@ tr:hover td{background:rgba(255,255,255,.022)}
 .ln.ok .l{color:var(--gr)} .ln.err .l{color:var(--rd)} .ln.warn .l{color:var(--am)}
 .ln.info .l{color:var(--az)} .ln .m{word-break:break-word}
 
+/* ── TERMINAL ────────────────────────────────────────────────────── */
+.term{background:#04060c;border:1px solid var(--line);border-radius:var(--r2);padding:12px;
+  height:min(52vh,460px);overflow:auto;font-family:var(--fm);font-size:12.2px;
+  line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.term .cmd{color:#7fd1ff;font-weight:600}
+.term .ok{color:var(--gr)} .term .bad{color:var(--rd)} .term .dim{color:var(--tx3)}
+.term-in{display:flex;gap:8px;align-items:center;margin-top:10px}
+.term-in .pmt{color:var(--gr);font-family:var(--fm);flex:none;font-weight:700}
+
 /* ── MISC ────────────────────────────────────────────────────────── */
 .row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
 .sk{background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.1),rgba(255,255,255,.05));
@@ -305,20 +314,27 @@ details.catsec>summary .tag{margin-left:auto}
     <input id="u" class="i" autocomplete="username" placeholder="admin">
     <label class="f" for="p">Mật khẩu</label>
     <input id="p" class="i" type="password" autocomplete="current-password" placeholder="••••••••">
-    <label class="f" for="srv" style="margin-top:12px">Địa chỉ bot
-      <span class="hint">— bỏ trống nếu mở panel ngay trên máy chạy bot</span></label>
-    <input id="srv" class="i mono" placeholder="http://192.168.x.x:5000"
-      style="font-size:12.5px">
-    <div class="row" style="justify-content:space-between;align-items:center;margin-top:10px">
-      <label class="row" style="gap:6px;font-size:12.5px">
-        <input type="checkbox" id="rem"> Nhớ thiết bị này</label>
-      <button class="btn" type="button" id="tbtn" onclick="testConn()">Kiểm tra kết nối</button>
-    </div>
-    <div class="hint mono" id="srvState"></div>
     <div class="err" id="lerr"></div>
     <button class="btn pri full" id="lbtn" type="submit" style="margin-top:16px">Đăng nhập →</button>
     <p style="margin:14px 0 0;font-size:11.5px">Quên mật khẩu? Xem hướng dẫn reset trong
       <span class="mono">README</span> — hoặc chạy lệnh reset từ máy đang chạy bot.</p>
+    <!-- Địa chỉ bot KHÔNG còn là ô bắt buộc: panel tự suy ra từ ?api=…
+         (quét QR trong Zalo) hoặc cùng origin khi mở ngay trên máy chạy bot.
+         Ô này chỉ mở ra khi cần đổi máy chủ, hoặc tự hiện khi đăng nhập lỗi
+         vì không kết nối được — nhờ vậy trang đăng nhập gọn đúng 2 ô. -->
+    <button class="btn" type="button" id="advbtn" onclick="advToggle()"
+      style="margin-top:12px;font-size:12px;opacity:.75">⚙ Máy chủ bot khác…</button>
+    <div id="adv" hidden style="margin-top:8px;text-align:left">
+      <label class="f" for="srv">Địa chỉ bot
+        <span class="hint">— để trống nếu mở panel ngay trên máy chạy bot</span></label>
+      <input id="srv" class="i mono" placeholder="http://192.168.x.x:5000"
+        style="font-size:12.5px">
+      <div class="row" style="gap:6px;margin-top:8px">
+        <button class="btn" type="button" id="tbtn" onclick="testConn()">Kiểm tra kết nối</button>
+        <button class="btn" type="button" onclick="apiForget()">🗑 Quên địa chỉ đã lưu</button>
+      </div>
+      <div class="hint mono" id="srvState"></div>
+    </div>
   </form>
 </div>
 
@@ -373,11 +389,14 @@ details.catsec>summary .tag{margin-left:auto}
    ZaloBot Control Deck v4 — SPA một file.
    Gọi MỘT API /api/v4/overview cho cả dashboard (nhanh hơn nhiều so
    với 8–10 request của bản cũ). Mọi hành động khác dùng API sẵn có.
-   Chạy được cả ở origin khác: panel có thể được host TĨNH ở nơi khác rồi
-   trỏ về bot đang chạy trong nhà qua tunnel (?api=https://…). Khi đó mọi
-   request đi tới địa chỉ đó và trình duyệt phải qua được CORS (bot đã mở).
-   Token: sessionStorage cho phiên thường, localStorage khi tick "Nhớ thiết
-   bị này" — cần cho kiểu mở panel 24/7 ở tab ngoài.
+   Chạy được cả ở origin khác: panel được host TĨNH trên GitHub Pages
+   (https://devtran07.github.io/API-ZALO/) rồi trỏ về bot đang chạy trong nhà
+   qua ?api=http://… (link QR do lệnh ⌘web qr gửi vào Zalo đã kèm sẵn).
+   Khi đó mọi request đi tới địa chỉ đó và trình duyệt phải qua được CORS.
+   Đăng nhập chỉ cần TÀI KHOẢN + MẬT KHẨU: địa chỉ bot tự suy ra từ ?api=…
+   hoặc cùng origin; ô "Máy chủ bot khác…" chỉ hiện ra khi cần đổi.
+   Token: luôn nằm ở localStorage (phiên hạn 30 ngày, tự gia hạn) — panel
+   để chạy 24/7 nên mở lại tab là vào ngay.
    ──────────────────────────────────────────────────────────────────── */
 const S = {
   apiBase: '',            // địa chỉ bot (rỗng = cùng origin với panel)
@@ -474,9 +493,31 @@ async function testConn() {
     toast('✅ Kết nối được bot', 'g');
   } catch (e) {
     setApiBase(old, false);                // không ghi đè địa chỉ đang chạy được
-    if (st) st.textContent = '❌ ' + e.message + ' — kiểm tra URL tunnel và cổng';
+    if (st) st.textContent = '❌ ' + e.message + ' — kiểm tra địa chỉ bot và cổng';
   }
   if (b) { b.disabled = false; b.textContent = 'Kiểm tra kết nối'; }
+}
+
+/* Ô "Máy chủ bot" chỉ mở khi cần — trang đăng nhập mặc định chỉ có tk/mk. */
+function advShow() {
+  const a = $('#adv');
+  if (a) a.hidden = false;
+  const el = $('#srv');
+  if (el && !el.value) el.value = S.apiBase;
+}
+function advToggle() {
+  const a = $('#adv');
+  if (!a) return;
+  a.hidden = !a.hidden;
+  if (!a.hidden) { const el = $('#srv'); if (el) { el.value = S.apiBase; el.focus(); } }
+}
+/* Xoá địa chỉ bot đã ghim (link cũ/hỏng) → quay về "cùng máy". */
+function apiForget() {
+  try { localStorage.removeItem('zb_api'); } catch (e) {}
+  setApiBase(window.__ZB_API__ || '', false);
+  const el = $('#srv'); if (el) el.value = S.apiBase;
+  const st = $('#srvState'); if (st) st.textContent = 'đã quên địa chỉ cũ';
+  toast('🗑 Đã quên địa chỉ bot đã lưu', 'g');
 }
 
 /* ── Kho dữ liệu dựng sẵn (repo API-ZALO) ───────────────────────── */
@@ -548,17 +589,21 @@ $('#lform').addEventListener('submit', async e => {
     if (!d.token) throw new Error('Máy chủ không trả token');
     S.token = d.token; S.role = d.role || 'admin';
     S.user = d.username || $('#u').value || 'admin';
-    const rem = !!($('#rem') && $('#rem').checked);
-    if (rem) storeSession(true);                 // "Nhớ thiết bị" → sống qua restart
-    else {
-      S.remember = false;
-      storeSession(false);
-      try { ['zbt','zbr','zbu'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
-    }
-    // Đăng nhập được nghĩa là địa chỉ này đúng → nhớ cho lần mở sau.
-    setApiBase($('#srv') ? $('#srv').value : S.apiBase);
+    // Panel để chạy 24/7: luôn nhớ phiên (token hạn 30 ngày, tự gia hạn khi
+    // dùng). Không còn ô "Nhớ thiết bị" — mặc định nhớ để mở lại tab là vào ngay.
+    storeSession(true);
+    // Ô "Máy chủ bot" (chỉ hiện khi cần đổi): có giá trị thì ghim lại.
+    const srv = $('#srv');
+    if (srv && srv.value.trim()) setApiBase(srv.value);
     start();
-  } catch (err) { $('#lerr').textContent = err.message; }
+  } catch (err) {
+    $('#lerr').textContent = err.message;
+    // Lỗi MẠNG (không phải sai mật khẩu) → mở luôn ô địa chỉ bot để sửa.
+    // Đây chính là thứ trước đây chặn panel GitHub Pages vào được bot.
+    if (!/Sai tài khoản|mật khẩu|Phiên đăng nhập|quyền|local_only/i.test(err.message)) {
+      advShow();
+    }
+  }
   b.disabled = false;
 });
 $('#out').addEventListener('click', () => logout());
@@ -585,6 +630,7 @@ const NAV = [
   ['mybot',   '🤖', 'Bot con',    'Sub-bot & gia hạn'],
   ['web',     '🌐', 'Web & Panel', 'Link Pages, LAN, QR'],
   ['log',     '≡', 'Log',        'Trực tiếp từ bot'],
+  ['term',    '▮', 'Terminal',   'Chạy lệnh trên máy bot'],
   ['sys',     '⚙', 'Hệ thống',   'Tiến trình & tài nguyên'],
 ];
 function renderNav() {
@@ -621,12 +667,14 @@ const MIC = {
   users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.2" cy="8.4" r="3.2"/><path d="M3.6 19.4c.7-3 2.9-4.7 5.6-4.7s4.9 1.7 5.6 4.7"/><path d="M16.6 5.9a3 3 0 0 1 0 5.9"/><path d="M17.6 15.2c1.8.5 3 2 3.4 4.2"/></svg>',
   bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 16.4V11a5.8 5.8 0 0 1 11.6 0v5.4l1.3 2H4.9z"/><path d="M10.2 20.4a2 2 0 0 0 3.6 0"/></svg>',
   user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.1"/><circle cx="12" cy="9.7" r="3.1"/><path d="M6.3 19a6.4 6.4 0 0 1 11.4 0"/></svg>',
+  term: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.4" width="18" height="15.2" rx="2.2"/><path d="M7.4 9.6l2.6 2.6-2.6 2.6"/><path d="M12.4 15.6h4.4"/></svg>',
 };
 const MNAV = [
   ['dash',  'Trang chủ',        MIC.home],
   ['cmds',  'Lệnh & lệnh mới',  MIC.cmds],
   ['mybot', 'Bot con',          MIC.users],
   ['log',   'Log',              MIC.bell],
+  ['term',  'Terminal',         MIC.term],
   ['sys',   'Hệ thống',         MIC.user],
 ];
 function renderMtab() {
@@ -1640,6 +1688,144 @@ function logPause() {
   if (!S.paused) { S.queued.forEach(pushLog); S.queued = []; }
 }
 
+/* ── TERMINAL ───────────────────────────────────────────────────────
+   Chạy lệnh NGAY TRÊN MÁY ĐANG CHẠY BOT (git pull, pip install, restart…)
+   nên không phải ngồi vào đúng máy đó nữa. Server là bên quyết định có
+   cho chạy hay không (`local_only` / `allow_terminal`) — panel chỉ hiện
+   đúng thứ server cho phép, không tự nới quyền. */
+V.term = async () => {
+  let d = {};
+  try { d = await api('/api/v4/terminal'); }
+  catch (e) { d = { error: e.message }; }
+  S.termState = d;
+  const quick = (d.quick || []).map((q, i) =>
+    `<button class="btn" style="font-size:12px" onclick="termQuick(${i})">${esc(q.label)}</button>`
+  ).join('');
+  const warn = d.enabled ? '' : `
+    <div class="alert r" style="margin-bottom:12px"><span>🔒</span><div>
+      <b>Terminal đang tắt</b>
+      <div class="hint" style="margin-top:4px">${esc(d.error || '')}</div>
+      <div class="hint" style="margin-top:4px">Bật <span class="mono">local_only</span> trong
+        <span class="mono">configs/panel_security.json</span>, hoặc bật tường minh
+        <span class="mono">allow_terminal</span> nếu panel phơi ra ngoài internet.</div>
+      <button class="btn" style="margin-top:8px" onclick="termEnable()">🔓 Bật terminal cho panel này</button>
+    </div></div>`;
+  setTimeout(termPaint, 20);
+  return `
+    ${warn}
+    <div class="card" style="margin-bottom:12px">
+      <div class="row" style="flex-wrap:wrap;gap:6px">
+        <span class="pill mono" title="${esc(d.cwd||'')}">📁 ${esc((d.cwd||'').split('/').slice(-1)[0]||'—')}</span>
+        <span class="pill"><span class="dot ${d.enabled?'g':'r'}"></span> ${d.enabled?'sẵn sàng':'đang tắt'}</span>
+        <span class="pill mono">${esc(d.shell||'')}</span>
+        <div class="spacer" style="flex:1"></div>
+        <label class="row" style="gap:6px;font-size:12px">⏱ <input class="i" id="tto" type="number"
+          value="30" min="1" max="120" style="max-width:80px"></label>
+        <button class="btn" onclick="termClear()">🗑 Xoá màn hình</button>
+      </div>
+      <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:10px">${quick}</div>
+    </div>
+    <div class="term" id="tbox" onclick="var i=document.getElementById('tin');if(i)i.focus()"></div>
+    <div class="term-in">
+      <span class="pmt">$</span>
+      <input class="i mono" id="tin" autocomplete="off" spellcheck="false"
+        placeholder="Nhập lệnh rồi Enter… (↑↓ lịch sử · Ctrl+L xoá)" style="flex:1">
+      <button class="btn pri" onclick="termRun()">Chạy ⏎</button>
+      <button class="btn" onclick="termSpawn()" title="Chạy nền, không chờ">▶ Nền</button>
+    </div>`;
+};
+function termPaint() {
+  const b = $('#tbox'); if (!b) return;
+  b.innerHTML = (S.termLines || []).join('') ||
+    '<span class="dim">Terminal sẵn sàng. Gõ lệnh bên dưới rồi Enter.\n' +
+    'Ví dụ: git pull --ff-only · python main.py · ps aux | grep main.py</span>';
+  b.scrollTop = b.scrollHeight;
+  const i = $('#tin');
+  if (i) {
+    if (!i._wired) { i._wired = true; i.addEventListener('keydown', termKey); }
+    i.focus();
+  }
+}
+function termPush(html) {
+  S.termLines = S.termLines || [];
+  S.termLines.push(html);
+  if (S.termLines.length > 500) S.termLines.shift();
+  const b = $('#tbox');
+  if (b) { b.innerHTML = S.termLines.join(''); b.scrollTop = b.scrollHeight; }
+}
+function termClear() { S.termLines = []; termPaint(); }
+function termKey(e) {
+  const hist = S.termHist || [];
+  if (e.key === 'Enter') { e.preventDefault(); termRun(); return; }
+  if (e.key === 'l' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); termClear(); return; }
+  if (e.key === 'ArrowUp' && hist.length) {
+    e.preventDefault();
+    S.termIdx = Math.min((S.termIdx == null ? -1 : S.termIdx) + 1, hist.length - 1);
+    e.target.value = hist[S.termIdx] || '';
+  } else if (e.key === 'ArrowDown' && hist.length) {
+    e.preventDefault();
+    S.termIdx = Math.max((S.termIdx == null ? 0 : S.termIdx) - 1, -1);
+    e.target.value = S.termIdx < 0 ? '' : (hist[S.termIdx] || '');
+  }
+}
+async function termRun(cmd) {
+  const inp = $('#tin');
+  const c = String(cmd != null ? cmd : (inp ? inp.value : '')).trim();
+  if (!c) return;
+  if (c === '__restart__') return termSpawn(c);
+  S.termHist = [c, ...(S.termHist || []).filter(x => x !== c)].slice(0, 60);
+  S.termIdx = -1;
+  if (inp && cmd == null) inp.value = '';
+  termPush(`<div class="cmd">$ ${esc(c)}</div>`);
+  if (inp) inp.disabled = true;
+  let to = 30;
+  try { to = Number($('#tto')?.value || 30); } catch (e) {}
+  try {
+    const d = await api('/api/v4/terminal/run',
+      { method: 'POST', body: { cmd: c, timeout: to } });
+    const body = [d.out, d.err].filter(Boolean).join('\n');
+    termPush(`<div class="${d.code === 0 ? 'ok' : 'bad'}">` +
+      `${esc(body || '(không có output)')}\n[exit ${d.code} · ${d.ms} ms]</div>`);
+  } catch (e) {
+    termPush(`<div class="bad">${esc(e.message)}</div>`);
+  }
+  if (inp) { inp.disabled = false; inp.focus(); }
+}
+async function termSpawn(cmd) {
+  const inp = $('#tin');
+  const c = String(cmd != null ? cmd : (inp ? inp.value : '')).trim();
+  if (!c) return;
+  if (inp && cmd == null) inp.value = '';
+  termPush(`<div class="cmd">$ ${esc(c)} <span class="dim">(chạy nền)</span></div>`);
+  try {
+    const d = await api('/api/v4/terminal/spawn', { method: 'POST', body: { cmd: c } });
+    termPush(`<div class="ok">đã chạy nền · pid ${d.pid}` +
+      (c === '__restart__' ? ' — bot đang khởi động lại, đợi ~5s rồi bấm ⟳ Làm mới' : '') +
+      ` · <button class="btn" style="font-size:11px;padding:2px 8px" onclick="termTail(${d.pid})">Xem log</button></div>`);
+  } catch (e) { termPush(`<div class="bad">${esc(e.message)}</div>`); }
+}
+async function termTail(pid) {
+  try {
+    const d = await api(`/api/v4/terminal/log?pid=${pid}&lines=120`);
+    termPush(`<div class="dim">── log pid ${pid} (${d.alive ? 'đang chạy' : 'đã dừng'}) ──</div>` +
+      `<div>${esc(d.text || '(rỗng)')}</div>`);
+  } catch (e) { termPush(`<div class="bad">${esc(e.message)}</div>`); }
+}
+function termQuick(i) {
+  const q = ((S.termState || {}).quick || [])[i];
+  if (!q) return;
+  if (q.cmd === '__restart__') return termSpawn('__restart__');
+  const inp = $('#tin'); if (inp) inp.value = q.cmd;
+  termRun();
+}
+async function termEnable() {
+  try {
+    await api('/api/v4/terminal/config', { method: 'POST', body: { allow_terminal: true } });
+    toast('✅ Đã bật terminal', 'g');
+    draw();
+  } catch (e) { toast('🔴 ' + e.message, 'err'); }
+}
+
 V.web = async () => {
   const d = await api('/api/v4/web');
   return `
@@ -1671,7 +1857,9 @@ V.web = async () => {
         <button class="btn" onclick="setApiBase(S.apiBase);toast('Đã ghim địa chỉ này','g')">💾 Ghim lại</button></div>
       <div class="hint" style="margin-top:10px">
         Panel tĩnh ở GitHub Pages gọi API về máy chạy bot qua địa chỉ này —
-        mở bằng <span class="mono">?api=…</span> cũng được, panel tự nhớ.
+        nhận sẵn từ <span class="mono">?api=…</span> khi quét QR, panel tự nhớ.
+        Đăng nhập chỉ cần tài khoản + mật khẩu; muốn đổi máy chủ thì bấm
+        <span class="mono">⚙ Máy chủ bot khác…</span> ở trang đăng nhập.
         Trong Zalo gõ <span class="mono">⌘web qr</span> để nhận QR mở thẳng
         (link Pages + địa chỉ bot).
         <br><b>Lưu ý:</b> link <span class="mono">raw.githubusercontent.com</span> KHÔNG dùng
@@ -2134,11 +2322,13 @@ window.addBotModal = addBotModal; window.ttlSave = ttlSave;
 window.addBotTab = addBotTab; window.qrAddStart = qrAddStart;
 window.reloginModal = reloginModal;
 window.addBotSubmit = addBotSubmit;
+window.termRun = termRun; window.termSpawn = termSpawn; window.termTail = termTail;
+window.termQuick = termQuick; window.termClear = termClear; window.termEnable = termEnable;
+window.advToggle = advToggle; window.apiForget = apiForget;
 /* Tay cầm gỡ lỗi: mở console gõ `ZB.S` để xem trạng thái, `ZB.api('/api/status')` để gọi thử. */
 window.ZB = { S, api, go, draw, refresh, toast, start,
               apiBase: () => S.apiBase, setApiBase, testConn };
-if ($('#srv')) $('#srv').value = S.apiBase;      // hiện địa chỉ bot đang dùng
-if ($('#rem')) $('#rem').checked = S.remember;
+if ($('#srv')) $('#srv').value = S.apiBase;      // địa chỉ bot đang dùng (mục ẩn)
 if (S.token) start();
 </script>
 </body>
