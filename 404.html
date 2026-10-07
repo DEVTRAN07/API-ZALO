@@ -562,7 +562,9 @@ async function startBotViaGate() {
   if (!r.ok || j.ok === false) {
     return { ok: false, message: j.message || ('Cổng trả lỗi ' + r.status) };
   }
-  return { ok: true, message: j.message || 'Đã gửi lệnh bật bot…' };
+  // Cổng đã trả lời "đang chạy sẵn" → đừng bắt người dùng chờ 45s vô ích.
+  const already = /đang chạy sẵn/.test(String(j.message || ''));
+  return { ok: true, already, message: j.message || 'Đã gửi lệnh bật bot…' };
 }
 function saveGateCfg(url, token) {
   try {
@@ -622,14 +624,50 @@ async function bootBot() {
     if (m) m.textContent = res.message;
     const up = await waitBotUp(s => {
       if (m) m.textContent = '⏳ Đang chờ bot lên… ' + s.toFixed(1) + 's';
-    });
+    }, res.already ? 6000 : 45000);        // bot đã chạy sẵn → chỉ thử nhanh
     if (up) {
       if (m) m.textContent = '🟢 Bot đã lên — đang vào…';
       location.reload();
       return;
     }
-    if (m) m.textContent = 'Đã gửi lệnh bật nhưng chưa thấy bot phản hồi — xem log ở trang cổng.';
+    if (m) m.textContent = res.already
+      ? res.message + ' Nhưng trang này chưa gọi được panel API — muốn xem số liệu thì mở panel trên máy chạy bot.'
+      : 'Đã gửi lệnh bật nhưng chưa thấy bot phản hồi — xem log ở trang cổng.';
   } finally { if (b) b.disabled = false; }
+}
+/* Bật bot từ DASHBOARD / thanh trạng thái (khi bot tắt) — cùng lõi với nút ở
+   trang đăng nhập và Terminal: gọi cổng webgate, chờ panel trả lời, rồi vẽ
+   lại số liệu THẬT. Đây là đường người dùng vào thẳng panel bằng phiên đã
+   nhớ vẫn thấy được (trước đây nút ▶ chỉ có ở trang đăng nhập). */
+async function dashStartBot() {
+  const btn = document.getElementById('dashboot') || document.getElementById('liveboot');
+  // Soi lại MỖI LẦN: draw() dựng lại card nên phần tử cũ đã rớt khỏi trang.
+  const say = t => { const m = document.getElementById('dashbootmsg'); if (m) m.textContent = t; };
+  if (btn) btn.disabled = true;
+  S.booting = true;
+  try {
+    say('Đang gọi cổng ' + gateUrl() + ' …');
+    const res = await startBotViaGate();
+    if (!res.ok) { say(res.message); toast(res.message, 'r'); return; }
+    const up = await waitBotUp(s => {
+      say('⏳ Đang chờ bot lên… ' + s.toFixed(1) + 's');
+      if (btn) btn.textContent = '⏳ ' + s.toFixed(1) + 's';
+    }, res.already ? 6000 : 45000);        // bot đã chạy sẵn → chỉ thử nhanh
+    S.botUp = up ? true : S.botUp;
+    if (up || res.already) { S.ov = null; await refresh(); draw(); }
+    if (up) {
+      toast('🟢 Bot đã lên', 'g');
+      return;
+    }
+    // draw() vừa dựng lại card nên phải nói SAU cùng mới không bị ghi đè.
+    say(res.already
+      ? res.message + ' Nhưng trang này chưa gọi được panel API — muốn xem số liệu thì mở panel trên máy chạy bot.'
+      : 'Đã gửi lệnh bật nhưng chưa thấy bot phản hồi — xem log ở trang cổng.');
+    toast(res.already ? res.message : 'Chưa thấy bot phản hồi — mở trang cổng để xem log', 'r');
+  } finally {
+    S.booting = false;
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Bật bot'; }
+  }
 }
 
 /* ── Kho dữ liệu dựng sẵn (repo API-ZALO) ───────────────────────── */
@@ -661,6 +699,18 @@ function toast(msg, kind='') {
   setTimeout(() => el.remove(), 3600);
 }
 
+/* Câu trả lời vừa nhận có phải do PANEL API của bot sinh ra không?
+   • HTML (404 của Pages, hoặc trang ĐIỀU KHIỂN mà cổng webgate tự trả khi
+     bot tắt) → KHÔNG — bot đang tắt, không phải "panel vẫn on".
+   • JSON (kể cả lỗi 4xx/5xx do panel tự trả) → CÓ, server đang sống.
+   • Không có địa chỉ bot mà trang đang mở bằng https (Pages trần) thì
+     request chỉ tới host tĩnh, không bao giờ tới được bot. */
+function fromBotOrigin(r) {
+  const ct = (r && r.headers && r.headers.get('content-type')) || '';
+  if (/text\/html/i.test(ct)) return false;
+  if (S.apiBase) return !apiBlocked(S.apiBase);
+  return location.protocol !== 'https:';
+}
 /* ── HTTP ───────────────────────────────────────────────────────── */
 async function api(path, opt={}) {
   const t0 = performance.now();
@@ -680,18 +730,32 @@ async function api(path, opt={}) {
   }
   try { d = await r.json(); } catch (e) { d = {}; }
   if (path === '/api/v4/ping') rtt(performance.now() - t0, r.ok);
-  if (r.status === 401) { logout(true); throw new Error('Phiên đăng nhập đã hết'); }
+  if (r.status === 401) { S.botUp = true; logout(true); throw new Error('Phiên đăng nhập đã hết'); }
   if (!r.ok || d.ok === false) {
-    // 405/404 từ origin TĨNH (GitHub Pages, máy chủ file tĩnh): panel không
-    // có API nào để gọi — panel API sống TRONG tiến trình bot. Trước đây
-    // người dùng chỉ thấy "HTTP 405" khô khan khi gõ `python3 main.py` trong
-    // Terminal, không hiểu vì sao bot không lên.
-    if (!S.apiBase && opt.method && opt.method !== 'GET'
-        && (r.status === 405 || r.status === 404 || r.status === 501)) {
+    // SỐNG hay TẮT? "Chỗ nào đó trả lời" là chưa đủ: cổng webgate trả HTML
+    // 200 khi bot tắt, Pages trả 404 HTML, cổng trả 502 JSON khi panel chết
+    // — cả ba đều nghĩa là KHÔNG có panel API nào trả lời, cờ phải đổi NGAY.
+    // Trước đây chỉ lỗi mạng mới đổi cờ nên Dashboard vẫn "on" đầy đủ với
+    // số liệu cũ sau khi người dùng tắt bot.
+    const from = fromBotOrigin(r);
+    if (!from || r.status >= 500) {
       S.botUp = false;
-      throw new Error('Panel này là web TĨNH (không có API) và chưa thấy bot — có thể bot đang tắt. '
-        + 'Bấm ▶ Bật bot (cổng webgate) rồi thử lại.');
+      // 405/404 từ origin TĨNH (GitHub Pages, máy chủ file tĩnh): panel không
+      // có API nào để gọi — panel API sống TRONG tiến trình bot. Trước đây
+      // người dùng chỉ thấy "HTTP 405" khô khan khi gõ `python3 main.py` trong
+      // Terminal, không hiểu vì sao bot không lên.
+      if (!from && opt.method && opt.method !== 'GET'
+          && (r.status === 405 || r.status === 404 || r.status === 501)) {
+        throw new Error('Panel này là web TĨNH (không có API) và chưa thấy bot — có thể bot đang tắt. '
+          + 'Bấm ▶ Bật bot (cổng webgate) rồi thử lại.');
+      }
+      throw new Error(r.status >= 500
+        ? 'Panel API không trả lời được (HTTP ' + r.status + ') — bot có thể đang tắt hoặc đang lỗi. '
+          + 'Bấm ▶ Bật bot (cổng webgate) rồi thử lại.'
+        : 'Không gọi được panel của bot (HTTP ' + r.status + ') — có thể bot đang tắt. '
+          + 'Bấm ▶ Bật bot (cổng webgate) rồi thử lại.');
     }
+    S.botUp = true;                  // server trả lời JSON → bot đang sống
     throw new Error(d.error || ('HTTP ' + r.status));
   }
   S.botUp = true;
@@ -753,6 +817,13 @@ async function pingBot() {
       { cache: 'no-store', signal: c ? c.signal : undefined });
     if (to) clearTimeout(to);
     if (!r.ok) return false;
+    // PHẢI là pong JSON thật (`{"ok":true,…}`). Trả 200 HTML thì người trả
+    // lời là CỔNG webgate (bot tắt → cổng tự trả trang điều khiển) hoặc host
+    // TĨNH (Pages) — không phải bot. Trước đây chỉ so `r.ok` nên panel vẫn
+    // báo "🟢 vừa phản hồi" và ẨN nút ▶ Bật bot dù bot đã tắt.
+    if (!/json/i.test(r.headers.get('content-type') || '')) return false;
+    const pong = await r.json().catch(() => null);
+    if (!pong || pong.ok !== true) return false;
     // Trang đăng nhập chưa có chỗ hiện RTT — chỉ cập nhật khi có phần tử.
     if ($('#rtt')) rtt(performance.now() - t0, true);
     return true;
@@ -776,9 +847,13 @@ async function checkBotHeart() {
     const j = await r.json().catch(() => null);
     if (!j || !j.ts) { el.innerHTML = ''; return; }
     const age = Date.now() / 1000 - j.ts;
+    // Ping THẤT BẠI (nguồn tin đúng thời gian thực) → không bao giờ được kết
+    // luận 🟢 từ file: bot_status.json chỉ được đẩy lúc bot ĐỔI trạng thái và
+    // LUÔN ghi `running:true`, nên nó còn tươi không có nghĩa bot còn sống.
+    // Chính lối suy luận này làm trang đăng nhập "full on" khi bot đã tắt.
     el.innerHTML = age < HEART_FRESH
-      ? '🟢 Bot đang chạy <span style="opacity:.6">— tín hiệu trạng thái '
-        + fmtAgo(age) + ' trước</span>'
+      ? '🟠 Chưa gọi được bot — dấu vết trạng thái ' + fmtAgo(age)
+        + ' trước chỉ là lúc bot CẬP NHẬT trạng thái, không phải bằng chứng đang chạy'
       : '🔴 Không gọi được bot và tín hiệu trạng thái đã cũ ('
         + fmtAgo(age) + ' trước) — có thể bot đã tắt';
   } catch (e) { el.innerHTML = ''; }
@@ -973,9 +1048,45 @@ function donut(segs, size=132) {
 /* ── VIEWS ──────────────────────────────────────────────────────── */
 const V = {};
 
+/* Dashboard khi bot TẮT (hoặc không gọi được panel API): KHÔNG vẽ một thẻ số
+   liệu nào — vẽ là "on" giả, đúng lỗi người dùng báo "tắt rồi mà vẫn on".
+   Chỉ nói thẳng sự thật + nút ▶ Bật bot qua cổng webgate 24/7. */
+function dashOff() {
+  const g = gateUrl();
+  return `
+    <div class="alert r" style="margin-bottom:14px"><span>🔌</span><div>
+      <b>Bot đang tắt — trang này không gọi được API nào của panel</b>
+      <div class="hint" style="margin-top:5px">Panel API sống <b>trong tiến trình bot</b>,
+        nên bot tắt là không có số liệu nào cả (đằng sau đây KHÔNG phải số liệu cũ).
+        Việc bật lại do <b>cổng webgate</b> đảm nhiệm — cổng chạy 24/7, bot tắt cổng vẫn sống.</div>
+      <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+        <button class="btn pri" id="dashboot" type="button"
+                onclick="dashStartBot()">▶ Bật bot</button>
+        <a class="btn" href="${esc(g)}" target="_blank" rel="noopener">⚙️ Mở trang cổng</a>
+      </div>
+      <div class="hint" id="dashbootmsg" style="margin-top:8px">
+        Cổng: <span class="mono">${esc(g)}</span></div>
+    </div></div>
+    <details class="card" style="margin-bottom:14px">
+      <summary style="cursor:pointer;font-size:12.5px">Đổi địa chỉ / mã cổng bật bot</summary>
+      <input class="i" id="gdurl" spellcheck="false" style="margin-top:10px"
+             placeholder="http://127.0.0.1:8080" value="${esc(gateCfg().url || g)}"
+             onchange="saveGateCfg(this.value, (document.getElementById('gdtok')||{}).value)">
+      <input class="i" id="gdtok" type="password" style="margin-top:8px"
+             placeholder="Mã cổng (WEBGATE_TOKEN)" value="${esc(gateCfg().token)}"
+             onchange="saveGateCfg((document.getElementById('gdurl')||{}).value, this.value)">
+      <div class="hint" style="margin-top:8px">Điện thoại: mở thẳng
+        <span class="mono">${esc(g)}</span> (cùng mạng Wi-Fi) rồi bấm ▶ là vào được panel.</div>
+    </details>`;
+}
 V.dash = async () => {
-  const d = S.ov || await api('/api/v4/overview');
-  S.ov = d;
+  let d = S.ov;
+  if (!d) {
+    try { d = await api('/api/v4/overview'); S.ov = d; }
+    catch (e) { d = null; }
+  }
+  // Bot tắt / không gọi được panel → Dashboard phải NÓI RA và cho bấm ▶ ngay.
+  if (!d || S.botUp === false) return dashOff();
   const b = d.bot || {}, c = d.cache || {}, l = d.latency || {}, t = d.ttl || {};
   const warn = [];
   if (d.stale) warn.push(['r', 'Bot đang chạy code cũ', 'File API mới hơn lúc tiến trình khởi động — khởi động lại bot để nạp thay đổi.']);
@@ -2027,13 +2138,15 @@ async function termStartBot(cmd) {
   const res = await startBotViaGate();
   termPush(`<div class="${res.ok ? 'ok' : 'bad'}">${esc(res.message)}</div>`);
   if (!res.ok) return res;
-  const up = await waitBotUp();
+  const up = await waitBotUp(undefined, res.already ? 6000 : 45000);
   if (up) {
     S.botUp = true;
     termPush('<div class="ok">🟢 Bot đã lên — bấm ⟳ Làm mới để vào panel.</div>');
     return res;
   }
-  termPush('<div class="bad">Chưa thấy bot phản hồi — mở trang cổng để xem log.</div>');
+  termPush(res.already
+    ? `<div class="bad">${esc(res.message)} — nhưng Terminal chưa gọi được panel API.</div>`
+    : '<div class="bad">Chưa thấy bot phản hồi — mở trang cổng để xem log.</div>');
   return res;
 }
 async function termRun(cmd) {
@@ -2293,13 +2406,42 @@ async function draw() {
     wGroupChanged();
   }
 }
+/* Thanh trạng thái trên cùng — nói ĐÚNG 3 trạng thái, không tô hồng:
+   • không gọi được panel API → hiện LUÔN nút ▶ Bật bot (chính là chỗ người
+     dùng tìm "bật/tắt bot" khi vào thẳng panel bằng phiên đã nhớ);
+   • gọi được nhưng bot chưa nghe sự kiện Zalo → chấm đỏ, không có nút tắt
+     (web công khai chỉ được BẬT — xem test_panel_khong_co_nut_tat_bot);
+   • gọi được + đang nghe → chấm xanh. */
+function paintLive(b) {
+  const el = $('#live');
+  if (!el || S.booting) return;             // đang bấm ▶ → đừng đè mất đồng hồ
+  const full = !!S.ov;
+  el.style.cursor = full ? '' : 'pointer';
+  el.style.background = full ? '' : 'transparent';
+  el.style.padding = full ? '' : '0';
+  if (!full) {
+    el.title = 'Không gọi được panel API (bot đang tắt) — bấm để bật qua cổng webgate.';
+    el.innerHTML = `<button class="btn pri" id="liveboot" type="button"
+      style="padding:3px 10px;font-size:11.5px">▶ Bật bot</button>`;
+    return;
+  }
+  el.title = 'Panel trả lời số liệu mới nhất';
+  el.innerHTML = b.listening
+    ? `<span class="dot g"></span> bot trực tuyến`
+    : `<span class="dot r"></span> bot ngoại tuyến — panel vẫn sống`;
+}
 async function refresh() {
-  try { S.ov = await api('/api/v4/overview'); } catch (e) { /* hiện ở badge RTT */ }
+  try { S.ov = await api('/api/v4/overview'); }
+  catch (e) {
+    // Bot tắt → NÉM SỐ LIỆU CŨ ĐI. Trước đây `S.ov` được giữ nguyên nên
+    // Dashboard vẫn vẽ đủ thẻ xanh "đang nghe sự kiện" dù bot đã tắt.
+    if (S.botUp === false) S.ov = null;
+  }
   const b = (S.ov||{}).bot || {};
   if (b.name) { $('#bn').textContent = b.name; $('#wn').textContent = S.user || 'admin'; }
   $('#wr').textContent = (S.role || '') + ' · ' + (b.uptime || '—');
   $('#av').textContent = (S.user || 'A')[0].toUpperCase();
-  $('#live').innerHTML = `<span class="dot ${b.listening?'g':'r'}"></span> ${b.listening?'bot trực tuyến':'bot ngoại tuyến'}`;
+  paintLive(b);
   $('#stamp').textContent = 'v4 · ' + new Date().toLocaleTimeString('vi-VN');
   // badge cảnh báo trên sidebar
   const l = (S.ov||{}).latency || {};
@@ -2677,7 +2819,7 @@ window.addBotSubmit = addBotSubmit;
 window.termRun = termRun; window.termSpawn = termSpawn; window.termTail = termTail;
 window.termQuick = termQuick; window.termClear = termClear; window.termEnable = termEnable;
 window.webPublic = webPublic; window.checkBotHeart = checkBotHeart;
-window.bootBot = bootBot; window.gateUrl = gateUrl;
+window.bootBot = bootBot; window.gateUrl = gateUrl; window.dashStartBot = dashStartBot;
 /* Tay cầm gỡ lỗi: mở console gõ `ZB.S` để xem trạng thái, `ZB.api('/api/status')` để gọi thử. */
 window.ZB = { S, api, go, draw, refresh, toast, start,
               apiBase: () => S.apiBase, setApiBase };
