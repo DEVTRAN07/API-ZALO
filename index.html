@@ -561,20 +561,50 @@ async function discoverBot() {
 }
 
 /* ── Trạng thái sống của bot ngay trên trang đăng nhập ──────────────── */
-/* Bot đẩy `bot_status.json` lên kho dữ liệu mỗi 15 phút (heartbeat);
-   panel đọc qua raw: tươi <45 phút = đang chạy, cũ hơn = mất tín hiệu.
-   Fetch lỗi → để trống, không làm người dùng hoang mang. */
+/* HAI đường, theo đúng thứ tự tin cậy:
+     1. PING THẲNG bot (`/api/v4/ping`) khi đã biết/dò được địa chỉ — đúng
+        theo thời gian thực, bot tắt là biết ngay, và KHÔNG tốn commit nào:
+        `bot_status.json` giờ chỉ được đẩy khi trạng thái ĐỔI (địa chỉ/cờ
+        chạy), xem src/api/v4/web.py::_HB_INTERVAL = 0.
+     2. Đọc dấu vết cuối `bot_status.json` trên kho dữ liệu — chỉ dự phòng
+        cho máy không gọi được bot: tươi <15 phút = vừa có thay đổi trạng
+        thái (bot đang chạy), cũ hơn = mất dấu.
+   Cả hai đều lỗi → để trống, không làm người dùng hoang mang. */
 const HEART_URL = 'https://raw.githubusercontent.com/DEVTRAN07/API-ZALO/main/data/bot_status.json';
-const HEART_FRESH = 2700;   // 45 phút — gấp 3 nhịp heartbeat
+const HEART_FRESH = 900;    // 15 phút — dấu vết trạng thái cuối (đường dự phòng)
 function fmtAgo(s) {
   s = Math.max(0, Math.round(s));
   if (s < 60) return s + ' giây';
   if (s < 3600) return Math.round(s / 60) + ' phút';
   return Math.round(s / 3600) + ' giờ';
 }
+async function pingBot() {
+  const t0 = performance.now();
+  try {
+    let addr = S.apiBase;
+    if (!addr || apiBlocked(addr)) addr = await discoverBot();
+    if (!addr) return false;
+    const c = typeof AbortController === 'function' ? new AbortController() : null;
+    const to = c && setTimeout(() => c.abort(), 4000);
+    const r = await fetch(addr.replace(/\/+$/, '') + '/api/v4/ping?_=' + Date.now(),
+      { cache: 'no-store', signal: c ? c.signal : undefined });
+    if (to) clearTimeout(to);
+    if (!r.ok) return false;
+    // Trang đăng nhập chưa có chỗ hiện RTT — chỉ cập nhật khi có phần tử.
+    if ($('#rtt')) rtt(performance.now() - t0, true);
+    return true;
+  } catch (e) { return false; }
+}
 async function checkBotHeart() {
   const el = $('#lstat');
   if (!el) return;
+  // 1. Biết địa chỉ bot (ghim sẵn hoặc dò qua kho dữ liệu) → hỏi thẳng.
+  //    Đây là nguồn tin DUY NHẤT đúng theo thời gian thực: bot tắt là biết
+  //    ngay, không phải chờ file heartbeat cũ đi.
+  if (await pingBot()) {
+    el.innerHTML = '🟢 Bot đang chạy <span style="opacity:.6">— vừa phản hồi</span>';
+    return;
+  }
   try {
     const r = await fetch(HEART_URL + '?_=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) { el.innerHTML = ''; return; }
@@ -582,9 +612,10 @@ async function checkBotHeart() {
     if (!j || !j.ts) { el.innerHTML = ''; return; }
     const age = Date.now() / 1000 - j.ts;
     el.innerHTML = age < HEART_FRESH
-      ? '🟢 Bot đang chạy <span style="opacity:.6">— tín hiệu '
+      ? '🟢 Bot đang chạy <span style="opacity:.6">— tín hiệu trạng thái '
         + fmtAgo(age) + ' trước</span>'
-      : '🔴 Bot mất tín hiệu ' + fmtAgo(age) + ' trước — có thể đã tắt';
+      : '🔴 Không gọi được bot và tín hiệu trạng thái đã cũ ('
+        + fmtAgo(age) + ' trước) — có thể bot đã tắt';
   } catch (e) { el.innerHTML = ''; }
 }
 $('#lform').addEventListener('submit', e => { e.preventDefault(); attemptLogin(false); });

@@ -318,27 +318,10 @@ details.catsec>summary .tag{margin-left:auto}
     <button class="btn pri full" id="lbtn" type="submit" style="margin-top:16px">Đăng nhập →</button>
     <p style="margin:14px 0 0;font-size:11.5px">Quên mật khẩu? Xem hướng dẫn reset trong
       <span class="mono">README</span> — hoặc chạy lệnh reset từ máy đang chạy bot.</p>
-    <!-- Địa chỉ bot KHÔNG còn là ô bắt buộc: panel tự suy ra từ ?api=…
-         (quét QR trong Zalo) hoặc cùng origin khi mở ngay trên máy chạy bot.
-         Ô này chỉ mở ra khi cần đổi máy chủ, hoặc tự hiện khi đăng nhập lỗi
-         vì không kết nối được — nhờ vậy trang đăng nhập gọn đúng 2 ô. -->
-    <button class="btn" type="button" id="advbtn" onclick="advToggle()"
-      style="margin-top:12px;font-size:12px;opacity:.75">⚙ Máy chủ bot khác…</button>
-    <div id="adv" hidden style="margin-top:8px;text-align:left">
-      <label class="f" for="srv">Địa chỉ bot
-        <span class="hint">— để trống nếu mở panel ngay trên máy chạy bot</span></label>
-      <input id="srv" class="i mono" placeholder="http://192.168.x.x:5000"
-        style="font-size:12.5px">
-      <div class="row" style="gap:6px;margin-top:8px">
-        <button class="btn" type="button" id="tbtn" onclick="testConn()">Kiểm tra kết nối</button>
-        <button class="btn" type="button" onclick="apiForget()">🗑 Quên địa chỉ đã lưu</button>
-      </div>
-      <div class="hint mono" id="srvState"></div>
-      <div class="hint">Panel mở ở <span class="mono">https</span> (GitHub Pages) thì
-        địa chỉ bot phải là <span class="mono">https</span> hoặc
-        <span class="mono">localhost</span> — trình duyệt chặn https gọi http
-        (trừ localhost). Trong nhà cứ mở thẳng panel của bot rồi bỏ trống ô này.</div>
-    </div>
+    <!-- Trang đăng nhập gọn đúng 2 ô (tài khoản + mật khẩu). Địa chỉ bot
+         panel tự lo: ?api=… khi quét QR, cùng origin khi mở ngay trên máy
+         chạy bot, hoặc tự dò data/bot_address.json trên kho dữ liệu. -->
+    <div class="hint" id="lstat" style="margin-top:14px;min-height:18px"></div>
   </form>
 </div>
 
@@ -397,8 +380,8 @@ details.catsec>summary .tag{margin-left:auto}
    (https://devtran07.github.io/API-ZALO/) rồi trỏ về bot đang chạy trong nhà
    qua ?api=http://… (link QR do lệnh ⌘web qr gửi vào Zalo đã kèm sẵn).
    Khi đó mọi request đi tới địa chỉ đó và trình duyệt phải qua được CORS.
-   Đăng nhập chỉ cần TÀI KHOẢN + MẬT KHẨU: địa chỉ bot tự suy ra từ ?api=…
-   hoặc cùng origin; ô "Máy chủ bot khác…" chỉ hiện ra khi cần đổi.
+   Đăng nhập chỉ cần TÀI KHOẢN + MẬT KHẨU: địa chỉ bot tự suy ra từ ?api=…,
+   cùng origin, hoặc tự dò bot_address.json trên kho dữ liệu (raw).
    Token: luôn nằm ở localStorage (phiên hạn 30 ngày, tự gia hạn) — panel
    để chạy 24/7 nên mở lại tab là vào ngay.
    ──────────────────────────────────────────────────────────────────── */
@@ -466,6 +449,12 @@ function savedApiBase() {
     // Bản host tĩnh có thể nhúng sẵn địa chỉ bot (window.__ZB_API__) để mở lên
     // là dùng được ngay, nhưng KHÔNG được đè lên lựa chọn của người dùng.
     S.apiBase = (s != null) ? s : String(window.__ZB_API__ || '').trim();
+    // Trang https KHÔNG gọi được api http (mixed content) — địa chỉ http cũ
+    // còn nhớ trong máy chỉ gây chặn đăng nhập: bỏ đi để tự dò qua raw.
+    if (S.apiBase && apiBlocked(S.apiBase)) {
+      try { localStorage.removeItem('zb_api'); } catch (e) {}
+      S.apiBase = '';
+    }
   } catch (e) { S.apiBase = ''; }
 })();
 
@@ -482,39 +471,6 @@ function storeSession(remember) {
   S.remember = !!remember;
 }
 
-async function testConn() {
-  const el = $('#srv'), st = $('#srvState'), b = $('#tbtn');
-  const old = S.apiBase;
-  setApiBase(el ? el.value : '', false);   // dùng ngay cho phiên này
-  if (b) { b.disabled = true; b.textContent = '⏳ đang thử…'; }
-  if (st) { st.textContent = ''; st.innerHTML = ''; }
-  try {
-    const r = await fetch(apiUrl('/api/v4/ping'));
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok || d.ok === false) throw new Error('HTTP ' + r.status);
-    setApiBase(S.apiBase);                 // chỉ ghi nhớ khi thật sự thông
-    if (st) st.innerHTML = '<span class="dot g"></span> kết nối được bot';
-    toast('✅ Kết nối được bot', 'g');
-  } catch (e) {
-    setApiBase(old, false);                // không ghi đè địa chỉ đang chạy được
-    if (st) st.textContent = '❌ ' + e.message + ' — kiểm tra địa chỉ bot và cổng';
-  }
-  if (b) { b.disabled = false; b.textContent = 'Kiểm tra kết nối'; }
-}
-
-/* Ô "Máy chủ bot" chỉ mở khi cần — trang đăng nhập mặc định chỉ có tk/mk. */
-function advShow() {
-  const a = $('#adv');
-  if (a) a.hidden = false;
-  const el = $('#srv');
-  if (el && !el.value) el.value = S.apiBase;
-}
-function advToggle() {
-  const a = $('#adv');
-  if (!a) return;
-  a.hidden = !a.hidden;
-  if (!a.hidden) { const el = $('#srv'); if (el) { el.value = S.apiBase; el.focus(); } }
-}
 /* Trang https KHÔNG gọi được API http (mixed content) — trừ localhost.
    Đây là lý do THẬT khiến panel ở GitHub Pages không đăng nhập được:
    Chrome chặn thẳng request tới http://192.168.x.x:5000. Nói rõ ra thay vì
@@ -525,15 +481,6 @@ function apiBlocked(url) {
   if (!/^http:\/\//i.test(v)) return false;           // https hoặc cùng origin
   const host = v.slice(7).split('/')[0].split(':')[0].toLowerCase();
   return !['localhost', '127.0.0.1', '::1', '[::1]'].includes(host);
-}
-
-/* Xoá địa chỉ bot đã ghim (link cũ/hỏng) → quay về "cùng máy". */
-function apiForget() {
-  try { localStorage.removeItem('zb_api'); } catch (e) {}
-  setApiBase(window.__ZB_API__ || '', false);
-  const el = $('#srv'); if (el) el.value = S.apiBase;
-  const st = $('#srvState'); if (st) st.textContent = 'đã quên địa chỉ cũ';
-  toast('🗑 Đã quên địa chỉ bot đã lưu', 'g');
 }
 
 /* ── Kho dữ liệu dựng sẵn (repo API-ZALO) ───────────────────────── */
@@ -612,6 +559,65 @@ async function discoverBot() {
     return u;
   } catch (e) { return ''; }
 }
+
+/* ── Trạng thái sống của bot ngay trên trang đăng nhập ──────────────── */
+/* HAI đường, theo đúng thứ tự tin cậy:
+     1. PING THẲNG bot (`/api/v4/ping`) khi đã biết/dò được địa chỉ — đúng
+        theo thời gian thực, bot tắt là biết ngay, và KHÔNG tốn commit nào:
+        `bot_status.json` giờ chỉ được đẩy khi trạng thái ĐỔI (địa chỉ/cờ
+        chạy), xem src/api/v4/web.py::_HB_INTERVAL = 0.
+     2. Đọc dấu vết cuối `bot_status.json` trên kho dữ liệu — chỉ dự phòng
+        cho máy không gọi được bot: tươi <15 phút = vừa có thay đổi trạng
+        thái (bot đang chạy), cũ hơn = mất dấu.
+   Cả hai đều lỗi → để trống, không làm người dùng hoang mang. */
+const HEART_URL = 'https://raw.githubusercontent.com/DEVTRAN07/API-ZALO/main/data/bot_status.json';
+const HEART_FRESH = 900;    // 15 phút — dấu vết trạng thái cuối (đường dự phòng)
+function fmtAgo(s) {
+  s = Math.max(0, Math.round(s));
+  if (s < 60) return s + ' giây';
+  if (s < 3600) return Math.round(s / 60) + ' phút';
+  return Math.round(s / 3600) + ' giờ';
+}
+async function pingBot() {
+  const t0 = performance.now();
+  try {
+    let addr = S.apiBase;
+    if (!addr || apiBlocked(addr)) addr = await discoverBot();
+    if (!addr) return false;
+    const c = typeof AbortController === 'function' ? new AbortController() : null;
+    const to = c && setTimeout(() => c.abort(), 4000);
+    const r = await fetch(addr.replace(/\/+$/, '') + '/api/v4/ping?_=' + Date.now(),
+      { cache: 'no-store', signal: c ? c.signal : undefined });
+    if (to) clearTimeout(to);
+    if (!r.ok) return false;
+    // Trang đăng nhập chưa có chỗ hiện RTT — chỉ cập nhật khi có phần tử.
+    if ($('#rtt')) rtt(performance.now() - t0, true);
+    return true;
+  } catch (e) { return false; }
+}
+async function checkBotHeart() {
+  const el = $('#lstat');
+  if (!el) return;
+  // 1. Biết địa chỉ bot (ghim sẵn hoặc dò qua kho dữ liệu) → hỏi thẳng.
+  //    Đây là nguồn tin DUY NHẤT đúng theo thời gian thực: bot tắt là biết
+  //    ngay, không phải chờ file heartbeat cũ đi.
+  if (await pingBot()) {
+    el.innerHTML = '🟢 Bot đang chạy <span style="opacity:.6">— vừa phản hồi</span>';
+    return;
+  }
+  try {
+    const r = await fetch(HEART_URL + '?_=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) { el.innerHTML = ''; return; }
+    const j = await r.json().catch(() => null);
+    if (!j || !j.ts) { el.innerHTML = ''; return; }
+    const age = Date.now() / 1000 - j.ts;
+    el.innerHTML = age < HEART_FRESH
+      ? '🟢 Bot đang chạy <span style="opacity:.6">— tín hiệu trạng thái '
+        + fmtAgo(age) + ' trước</span>'
+      : '🔴 Không gọi được bot và tín hiệu trạng thái đã cũ ('
+        + fmtAgo(age) + ' trước) — có thể bot đã tắt';
+  } catch (e) { el.innerHTML = ''; }
+}
 $('#lform').addEventListener('submit', e => { e.preventDefault(); attemptLogin(false); });
 async function attemptLogin(isRetry) {
   const b = $('#lbtn'); b.disabled = true; $('#lerr').textContent = '';
@@ -623,27 +629,26 @@ async function attemptLogin(isRetry) {
     // Panel để chạy 24/7: luôn nhớ phiên (token hạn 30 ngày, tự gia hạn khi
     // dùng). Không còn ô "Nhớ thiết bị" — mặc định nhớ để mở lại tab là vào ngay.
     storeSession(true);
-    // Ô "Máy chủ bot" (chỉ hiện khi cần đổi): có giá trị thì ghim lại.
-    const srv = $('#srv');
-    if (srv && srv.value.trim()) setApiBase(srv.value);
     start();
   } catch (err) {
-    // Lỗi MẠNG (không phải sai mật khẩu) → nói rõ nguyên nhân + mở ô địa chỉ.
+    // Lỗi MẠNG (không phải sai mật khẩu) → tự dò địa chỉ bot qua kho dữ liệu
+    // và thử lại ĐÚNG MỘT lần — kể cả khi đang nhớ một địa chỉ cũ/không dùng
+    // được (http bị chặn mixed content, LAN từ xa…).
     const net = !/Sai tài khoản|mật khẩu|Phiên đăng nhập|quyền|local_only/i.test(err.message);
-    if (net && apiBlocked()) {
-      $('#lerr').innerHTML = 'Trình duyệt CHẶN trang https gọi API http '
-        + '(mixed content): <span class="mono">' + esc(S.apiBase || '(rỗng)') + '</span>.'
-        + ' Hãy mở panel ngay trên máy chạy bot, hoặc dùng địa chỉ bot https.';
-    } else if (net && !S.apiBase && !isRetry) {
-      // Chưa biết bot ở đâu → tự dò qua kho dữ liệu rồi thử lại ĐÚNG MỘT lần.
-      $('#lerr').textContent = 'Đang tự tìm địa chỉ bot qua kho dữ liệu (GitHub)…';
+    if (net && !isRetry) {
       if (await discoverBot()) { b.disabled = false; return attemptLogin(true); }
-      $('#lerr').textContent = 'Chưa tự tìm ra bot (bot off hoặc chưa ghim địa chỉ https).'
-        + ' Bấm ⚙ Máy chủ bot khác… để nhập, hoặc quét QR từ lệnh ⌘web qr trong Zalo.';
+      if (apiBlocked()) {
+        $('#lerr').innerHTML = 'Trình duyệt CHẶN trang https gọi API http '
+          + '(mixed content): <span class="mono">' + esc(S.apiBase || '(rỗng)') + '</span>.'
+          + ' Hãy mở panel ngay trên máy chạy bot, hoặc dùng địa chỉ bot https.';
+      } else {
+        $('#lerr').textContent =
+          'Không vào được bot — bot đang tắt hoặc chưa ghim địa chỉ https.';
+      }
     } else {
       $('#lerr').textContent = err.message;
     }
-    if (net) advShow();
+    if (net) checkBotHeart();   // bot không phản hồi → cập nhật 🟢/🔴 lên trang
   }
   b.disabled = false;
 }
@@ -1885,8 +1890,7 @@ V.web = async () => {
       <div class="hint" style="margin-top:8px">Muốn dùng được ngay tại đây: bot cần một
         địa chỉ <span class="mono">https</span> trỏ về máy (Tailscale, domain +
         reverse proxy…) rồi khai báo <span class="mono">ZALOBOT_PUBLIC_URL=https://…</span>
-        khi chạy bot, hoặc nhập địa chỉ đó ở
-        <span class="mono">⚙ Máy chủ bot khác…</span>.</div>
+        khi chạy bot, hoặc ghim ở card <b>Điều khiển từ xa</b> bên dưới.</div>
     </div></div>`;
   return `
     ${warn}
@@ -1909,9 +1913,13 @@ V.web = async () => {
       <div class="card"><h3>Điều khiển từ xa (HTTPS)</h3>
         ${d.public_url
           ? `<div class="mono" style="font-size:13px;word-break:break-all">${esc(d.public_url)}</div>
-             <div class="hint">địa chỉ https trỏ về máy bot — bot đã TỰ CÔNG BỐ lên kho
-               dữ liệu nên panel ở Pages mở TRẦN (không ?api=) cũng tự tìm ra bot;
-               đăng nhập chỉ cần tài khoản + mật khẩu</div>
+             <div class="hint">địa chỉ https trỏ về máy bot — panel ở Pages mở TRẦN
+               (không ?api=) tự tìm ra bot; đăng nhập chỉ cần tài khoản + mật khẩu</div>
+             <div class="hint" style="margin-top:6px">📣 ${d.published_synced
+               ? `<b>✅ Đã công bố</b> lên kho dữ liệu${d.published_ts ? ` · lần cuối đổi <b>${new Date(d.published_ts*1000).toLocaleString('vi-VN')}</b>` : ''}`
+               : (d.published_url
+                 ? `<b>⏳ Chưa đồng bộ</b> — kho đang lưu <span class="mono">${esc(d.published_url)}</span>, đang đẩy lại (CDN raw chậm vài phút là bình thường)`
+                 : '<b>⏳ Đang công bố</b> lên kho dữ liệu lần đầu… (nếu git/credential lỗi sẽ không đẩy được — xem log bot)')}${d.public_updated ? ` · ghim lúc <b>${new Date(d.public_updated*1000).toLocaleString('vi-VN')}</b>` : ''}</div>
              <div class="row" style="margin-top:10px">
                <a class="btn pri" target="_blank"
                  href="${esc(d.pages_url)}?api=${encodeURIComponent(d.public_url)}">↗ Mở panel từ xa</a>
@@ -1924,6 +1932,8 @@ V.web = async () => {
                  src="${apiUrl('/api/v4/web/qr')}?token=${encodeURIComponent(S.token)}&_=${Date.now()}"></div>`
           : `<div class="hint">Chưa có — panel ở Pages (https) không gọi được
                <span class="mono">http://192.168.x.x</span>.</div>
+             ${d.published_url ? `<div class="hint" style="margin-top:6px">Kho dữ liệu còn lưu địa chỉ cũ
+               <span class="mono">${esc(d.published_url)}</span>${d.published_ts ? ` (đổi <b>${new Date(d.published_ts*1000).toLocaleString('vi-VN')}</b>)` : ''} — ghim lại để cập nhật.</div>` : ''}
              <input class="i mono" id="wpub" placeholder="https://may-bot.example.ts.net"
                style="font-size:12.5px;margin-top:8px">
              <div class="row" style="margin-top:8px">
@@ -1953,8 +1963,8 @@ V.web = async () => {
       <div class="hint" style="margin-top:10px">
         Panel tĩnh ở GitHub Pages gọi API về máy chạy bot qua địa chỉ này —
         nhận sẵn từ <span class="mono">?api=…</span> khi quét QR, panel tự nhớ.
-        Đăng nhập chỉ cần tài khoản + mật khẩu; muốn đổi máy chủ thì bấm
-        <span class="mono">⚙ Máy chủ bot khác…</span> ở trang đăng nhập.
+        Đăng nhập chỉ cần tài khoản + mật khẩu — bot đã ghim địa chỉ https
+        (tự công bố lên kho dữ liệu) thì panel mở trần cũng tự tìm ra bot.
         Trong Zalo gõ <span class="mono">⌘web qr</span> để nhận QR mở thẳng
         (link Pages + địa chỉ bot).
         <br><b>Lưu ý:</b> link <span class="mono">raw.githubusercontent.com</span> KHÔNG dùng
@@ -2430,12 +2440,11 @@ window.reloginModal = reloginModal;
 window.addBotSubmit = addBotSubmit;
 window.termRun = termRun; window.termSpawn = termSpawn; window.termTail = termTail;
 window.termQuick = termQuick; window.termClear = termClear; window.termEnable = termEnable;
-window.advToggle = advToggle; window.apiForget = apiForget;
-window.webPublic = webPublic;
+window.webPublic = webPublic; window.checkBotHeart = checkBotHeart;
 /* Tay cầm gỡ lỗi: mở console gõ `ZB.S` để xem trạng thái, `ZB.api('/api/status')` để gọi thử. */
 window.ZB = { S, api, go, draw, refresh, toast, start,
-              apiBase: () => S.apiBase, setApiBase, testConn };
-if ($('#srv')) $('#srv').value = S.apiBase;      // địa chỉ bot đang dùng (mục ẩn)
+              apiBase: () => S.apiBase, setApiBase };
+checkBotHeart();                                 // 🟢/🔴 ngay trên trang đăng nhập
 if (S.token) start();
 </script>
 </body>
