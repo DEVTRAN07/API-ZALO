@@ -322,6 +322,28 @@ details.catsec>summary .tag{margin-left:auto}
          panel tự lo: ?api=… khi quét QR, cùng origin khi mở ngay trên máy
          chạy bot, hoặc tự dò data/bot_address.json trên kho dữ liệu. -->
     <div class="hint" id="lstat" style="margin-top:14px;min-height:18px"></div>
+
+    <!-- BOT ĐANG TẮT? Bật ngay tại đây.
+         Panel ở Pages là web TĨNH — bot tắt thì không còn gì trả lời (panel
+         API sống TRONG tiến trình bot). Việc bật lại thuộc về CỔNG webgate
+         (deploy/webgate.py) — dịch vụ nhỏ chạy 24/7 độc lập với bot. -->
+    <div id="bootwrap" style="display:none;margin-top:12px">
+      <button class="btn full" id="lboot" type="button"
+              style="justify-content:center;width:100%">▶ Bật bot</button>
+      <details style="margin-top:8px;text-align:left">
+        <summary style="cursor:pointer;font-size:11.5px;color:var(--tx3)">
+          Cổng bật bot — địa chỉ &amp; mã</summary>
+        <input class="i" id="gurl" placeholder="http://127.0.0.1:8080"
+               style="margin-top:8px" spellcheck="false">
+        <input class="i" id="gtok" type="password"
+               placeholder="Mã cổng (WEBGATE_TOKEN)" style="margin-top:6px">
+        <div class="hint">Cổng phải chạy 24/7 trên MÁY BOT
+          (<span class="mono">deploy/install-macos.sh</span>). Mã cổng lấy từ
+          <span class="mono">WEBGATE_TOKEN</span> của cổng; cổng chưa đặt mã thì
+          chỉ bật được khi mở panel ngay trên máy bot.</div>
+      </details>
+      <div class="hint" id="bootmsg"></div>
+    </div>
   </form>
 </div>
 
@@ -483,6 +505,113 @@ function apiBlocked(url) {
   return !['localhost', '127.0.0.1', '::1', '[::1]'].includes(host);
 }
 
+/* ── BẬT BOT NGAY TRÊN PANEL (khi bot đã tắt) ────────────────────────
+   Vì sao phải có: panel API sống TRONG tiến trình bot (src/api/server.py),
+   nên bot tắt là panel tắt theo — không còn gì để nhận lệnh bật lại.
+   Việc bật lại vì thế thuộc về CỔNG webgate (deploy/webgate.py): một dịch
+   vụ nhỏ chạy 24/7, bot chết vẫn sống. Nút dưới đây gọi thẳng cổng đó.
+   Cổng phải CHO PHÉP origin này điều khiển — cách duy nhất là WEBGATE_TOKEN
+   (dán cùng mã vào ô "Mã cổng"); cookie phiên của cổng không đi theo
+   request cross-site nên đừng trông vào nó. */
+function gateCfg() {
+  try {
+    const d = JSON.parse(localStorage.getItem('zb_gate') || 'null') || {};
+    return { url: String(d.url || ''), token: String(d.token || '') };
+  } catch (e) { return { url: '', token: '' }; }
+}
+/* Bot có đang tắt không: `api()` cập nhật cờ này ở mọi request (thành công →
+   true, mất kết nối/405 web tĩnh → false). Dùng cho Terminal — bot tắt thì
+   KHÔNG có panel API nào để chạy lệnh. */
+function botLooksOff() { return S.botUp === false; }
+/* Lệnh có phải là "bật bot" không: python3 main.py, python -u main.py,
+   ./main.py, nohup python3 main.py, hoặc nút ⟳ Khởi động lại (__restart__).
+   Bot tắt thì panel không tự chạy được file này — phải nhờ cổng webgate. */
+function looksLikeStartBot(cmd) {
+  const c = String(cmd || '').trim();
+  if (c === '__restart__') return true;
+  // Bỏ phần chạy nền / ghi log ở CUỐI — cách bật bot quen thuộc:
+  //   nohup python3 main.py > /tmp/zalobot.log 2>&1 &
+  const head = c.replace(/\s*(?:[0-9]?>{1,2}\s*\S+|\d*>&\d|&\s*$)+\s*$/g, '').trim();
+  if (/[|;]|&&/.test(head)) return false;   // chuỗi lệnh khác (git pull && …)
+  // Chỉ nhận khi lệnh BẮT ĐẦU bằng main.py (có/không kèm python, nohup/exec/
+  // setsid/env VAR=x). Nhờ vậy `pkill -f main.py` không bị hiểu thành bật bot.
+  return /^(?:(?:nohup|exec|setsid|env(?:\s+\w+=\S+)*)\s+)*(?:[\w./-]*python[\w.]*(?:\s+-\w+)*\s+)?(?:\.\/)?main\.py(?:\s+.*)?$/.test(head);
+}
+/* Lõi dùng chung: NÚT ▶ Bật bot ở trang đăng nhập và LỆNH trong Terminal đều
+   gọi đúng một API của cổng. Trả {ok, message, net?, needToken?}. */
+async function startBotViaGate() {
+  const url = gateUrl(), tok = gateCfg().token.trim();
+  let r;
+  try {
+    r = await fetch(url + '/api/bot/start' + (tok ? '?token=' + encodeURIComponent(tok) : ''),
+      { method: 'POST', mode: 'cors', credentials: 'omit', cache: 'no-store' });
+  } catch (e) {
+    return { ok: false, net: true,
+             message: 'Không gọi được cổng ' + url + ' (' + String(e && e.message || e) + ')' };
+  }
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) {
+    return { ok: false, needToken: true,
+             message: 'Cổng chưa cho phép: cần MÃ CỔNG (WEBGATE_TOKEN) — hoặc mở '
+                      + url + ' để đăng nhập rồi bấm ▶ Bật bot.' };
+  }
+  if (!r.ok || j.ok === false) {
+    return { ok: false, message: j.message || ('Cổng trả lỗi ' + r.status) };
+  }
+  return { ok: true, message: j.message || 'Đã gửi lệnh bật bot…' };
+}
+function saveGateCfg(url, token) {
+  try {
+    localStorage.setItem('zb_gate',
+      JSON.stringify({ url: String(url || '').trim(), token: String(token || '') }));
+  } catch (e) {}
+}
+function gateDefault() {
+  // Mở panel trên chính máy bot qua http (vd http://192.168.1.13:5000) thì
+  // cổng nằm cùng máy, cổng 8080 — dùng luôn host đang xem.
+  const h = location.hostname;
+  if (location.protocol === 'http:' && h &&
+      !/^(localhost|127\.0\.0\.1|\[?::1\]?)$/i.test(h)) {
+    return location.protocol + '//' + h + ':8080';
+  }
+  return 'http://127.0.0.1:8080';
+}
+function gateUrl() {
+  return (gateCfg().url || gateDefault()).replace(/\/+$/, '');
+}
+function showBoot(on) {
+  const w = $('#bootwrap');
+  if (!w) return;
+  w.style.display = on ? 'block' : 'none';
+  const g = $('#gurl');
+  if (g && !g.value) g.value = gateUrl();
+}
+async function bootBot() {
+  const b = $('#lboot'), m = $('#bootmsg');
+  if (b) b.disabled = true;
+  if (m) m.textContent = 'Đang gọi cổng ' + gateUrl() + ' …';
+  try {
+    const res = await startBotViaGate();
+    if (!res.ok) {
+      if (m) {
+        m.innerHTML = esc(res.message) + ' — '
+          + '<a href="' + esc(gateUrl()) + '" target="_blank" rel="noopener">mở trang cổng</a>.';
+      }
+      return;
+    }
+    if (m) m.textContent = res.message;
+    for (let i = 0; i < 20; i++) {          // đợi bot lên rồi tự vào
+      await new Promise(s => setTimeout(s, 1500));
+      if (await pingBot()) {
+        if (m) m.textContent = '🟢 Bot đã lên — đang vào…';
+        location.reload();
+        return;
+      }
+    }
+    if (m) m.textContent = 'Đã gửi lệnh bật nhưng chưa thấy bot phản hồi — xem log ở trang cổng.';
+  } finally { if (b) b.disabled = false; }
+}
+
 /* ── Kho dữ liệu dựng sẵn (repo API-ZALO) ───────────────────────── */
 async function dataStatus(force) {
   if (S.data && !force) return S.data;
@@ -526,12 +655,26 @@ async function api(path, opt={}) {
     r = await fetch(apiUrl(path), o);
   } catch (e) {
     rtt(null, false);
-    throw new Error('Không kết nối được tới bot');
+    S.botUp = false;                 // bot tắt → Terminal/nút Bật bot biết
+    throw new Error('Không kết nối được tới bot (có thể bot đã tắt)');
   }
   try { d = await r.json(); } catch (e) { d = {}; }
   if (path === '/api/v4/ping') rtt(performance.now() - t0, r.ok);
   if (r.status === 401) { logout(true); throw new Error('Phiên đăng nhập đã hết'); }
-  if (!r.ok || d.ok === false) throw new Error(d.error || ('HTTP ' + r.status));
+  if (!r.ok || d.ok === false) {
+    // 405/404 từ origin TĨNH (GitHub Pages, máy chủ file tĩnh): panel không
+    // có API nào để gọi — panel API sống TRONG tiến trình bot. Trước đây
+    // người dùng chỉ thấy "HTTP 405" khô khan khi gõ `python3 main.py` trong
+    // Terminal, không hiểu vì sao bot không lên.
+    if (!S.apiBase && opt.method && opt.method !== 'GET'
+        && (r.status === 405 || r.status === 404 || r.status === 501)) {
+      S.botUp = false;
+      throw new Error('Panel này là web TĨNH (không có API) và chưa thấy bot — có thể bot đang tắt. '
+        + 'Bấm ▶ Bật bot (cổng webgate) rồi thử lại.');
+    }
+    throw new Error(d.error || ('HTTP ' + r.status));
+  }
+  S.botUp = true;
   return d;
 }
 function rtt(v, ok) {
@@ -603,8 +746,10 @@ async function checkBotHeart() {
   //    ngay, không phải chờ file heartbeat cũ đi.
   if (await pingBot()) {
     el.innerHTML = '🟢 Bot đang chạy <span style="opacity:.6">— vừa phản hồi</span>';
+    showBoot(false);
     return;
   }
+  showBoot(true);        // không gọi được bot → cho bật lại từ đây
   try {
     const r = await fetch(HEART_URL + '?_=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) { el.innerHTML = ''; return; }
@@ -619,6 +764,21 @@ async function checkBotHeart() {
   } catch (e) { el.innerHTML = ''; }
 }
 $('#lform').addEventListener('submit', e => { e.preventDefault(); attemptLogin(false); });
+$('#lboot').addEventListener('click', bootBot);
+['gurl', 'gtok'].forEach(id => {
+  const el = $('#' + id);
+  if (el) el.addEventListener('change', () =>
+    saveGateCfg($('#gurl').value.trim(), $('#gtok').value));
+});
+(function initGate() {
+  try {
+    const q = new URLSearchParams(location.search).get('gate');
+    if (q) saveGateCfg(q, gateCfg().token);   // ?gate=http://… (link QR riêng)
+  } catch (e) {}
+  const c = gateCfg();
+  if ($('#gurl')) $('#gurl').value = c.url || gateDefault();
+  if ($('#gtok')) $('#gtok').value = c.token;
+})();
 async function attemptLogin(isRetry) {
   const b = $('#lbtn'); b.disabled = true; $('#lerr').textContent = '';
   try {
@@ -1740,14 +1900,32 @@ function logPause() {
    cho chạy hay không (`local_only` / `allow_terminal`) — panel chỉ hiện
    đúng thứ server cho phép, không tự nới quyền. */
 V.term = async () => {
-  let d = {};
+  let d = {}, off = false;
   try { d = await api('/api/v4/terminal'); }
-  catch (e) { d = { error: e.message }; }
+  catch (e) {
+    d = { error: e.message };
+    // Bot đang tắt (hoặc panel đang ở web tĩnh) ⇒ KHÔNG có panel API nào để
+    // chạy lệnh. Khác hẳn "terminal bị tắt bởi cấu hình" bên dưới.
+    off = botLooksOff() || /tĩnh|405|không kết nối|không có gì chạy|không có api/i.test(e.message || '');
+  }
+  if (off) d.__off = true;
   S.termState = d;
-  const quick = (d.quick || []).map((q, i) =>
-    `<button class="btn" style="font-size:12px" onclick="termQuick(${i})">${esc(q.label)}</button>`
-  ).join('');
-  const warn = d.enabled ? '' : `
+  const quick = off
+    ? `<button class="btn pri" style="font-size:12px"
+         onclick="termStartBot('python3 main.py')">▶ Bật bot (cổng webgate)</button>`
+    : (d.quick || []).map((q, i) =>
+      `<button class="btn" style="font-size:12px" onclick="termQuick(${i})">${esc(q.label)}</button>`
+    ).join('');
+  const warn = off ? `
+    <div class="alert r" style="margin-bottom:12px"><span>🔌</span><div>
+      <b>Bot đang tắt — Terminal không chạy được lệnh nào</b>
+      <div class="hint" style="margin-top:4px">Panel API sống <b>trong tiến trình bot</b>,
+        nên bot tắt là không còn gì để chạy lệnh (panel ở web tĩnh thì POST còn bị trả 405).
+        Việc bật lại thuộc về <b>cổng webgate</b> — bấm nút dưới là xong, gõ
+        <span class="mono">python3 main.py</span> ở đây cũng được chuyển sang đó.</div>
+      <button class="btn pri" style="margin-top:8px" onclick="termStartBot('python3 main.py')">
+        ▶ Bật bot</button>
+    </div></div>` : (d.enabled ? '' : `
     <div class="alert r" style="margin-bottom:12px"><span>🔒</span><div>
       <b>Terminal đang tắt</b>
       <div class="hint" style="margin-top:4px">${esc(d.error || '')}</div>
@@ -1755,14 +1933,15 @@ V.term = async () => {
         <span class="mono">configs/panel_security.json</span>, hoặc bật tường minh
         <span class="mono">allow_terminal</span> nếu panel phơi ra ngoài internet.</div>
       <button class="btn" style="margin-top:8px" onclick="termEnable()">🔓 Bật terminal cho panel này</button>
-    </div></div>`;
+    </div></div>`);
   setTimeout(termPaint, 20);
   return `
     ${warn}
     <div class="card" style="margin-bottom:12px">
       <div class="row" style="flex-wrap:wrap;gap:6px">
         <span class="pill mono" title="${esc(d.cwd||'')}">📁 ${esc((d.cwd||'').split('/').slice(-1)[0]||'—')}</span>
-        <span class="pill"><span class="dot ${d.enabled?'g':'r'}"></span> ${d.enabled?'sẵn sàng':'đang tắt'}</span>
+        <span class="pill"><span class="dot ${off?'r':(d.enabled?'g':'r')}"></span>
+          ${off?'bot đang tắt':(d.enabled?'sẵn sàng':'đang tắt')}</span>
         <span class="pill mono">${esc(d.shell||'')}</span>
         <div class="spacer" style="flex:1"></div>
         <label class="row" style="gap:6px;font-size:12px">⏱ <input class="i" id="tto" type="number"
@@ -1814,11 +1993,47 @@ function termKey(e) {
     e.target.value = S.termIdx < 0 ? '' : (hist[S.termIdx] || '');
   }
 }
+/* Bật bot từ Terminal khi bot đã tắt.
+   Panel KHÔNG thể tự chạy `python3 main.py` khi bot tắt: panel API sống trong
+   tiến trình bot, mà tiến trình đó đang chết (panel ở Pages thì POST còn bị
+   405). Việc "chạy main.py" vì thế phải giao cho cổng webgate — cổng bật bot
+   đúng cách mà máy này vẫn dùng (launchd/systemd), rồi panel chờ bot lên. */
+async function termStartBot(cmd) {
+  const c = String(cmd || 'python3 main.py').trim();
+  termPush(`<div class="cmd">$ ${esc(c)}</div>`);
+  termPush(`<div class="dim">Bot đang tắt nên panel không tự chạy được lệnh này —
+    đang bật qua cổng webgate (tương đương <span class="mono">${esc(c)}</span>
+    trên máy bot)…</div>`);
+  const res = await startBotViaGate();
+  termPush(`<div class="${res.ok ? 'ok' : 'bad'}">${esc(res.message)}</div>`);
+  if (!res.ok) return res;
+  for (let i = 0; i < 20; i++) {
+    await new Promise(s => setTimeout(s, 1500));
+    try {
+      const h = await fetch(apiUrl('/api/v4/ping?_=' + Date.now()), { cache: 'no-store' });
+      if (h.ok) {
+        S.botUp = true;
+        termPush('<div class="ok">🟢 Bot đã lên — bấm ⟳ Làm mới để vào panel.</div>');
+        return res;
+      }
+    } catch (e) {}
+  }
+  termPush('<div class="bad">Chưa thấy bot phản hồi — mở trang cổng để xem log.</div>');
+  return res;
+}
 async function termRun(cmd) {
   const inp = $('#tin');
   const c = String(cmd != null ? cmd : (inp ? inp.value : '')).trim();
   if (!c) return;
   if (c === '__restart__') return termSpawn(c);
+  // Bot đã tắt: lệnh bật bot đi đường cổng; lệnh khác thì nói rõ vì sao không chạy được.
+  if (botLooksOff()) {
+    if (inp && cmd == null) inp.value = '';
+    if (looksLikeStartBot(c)) return termStartBot(c);
+    termPush(`<div class="cmd">$ ${esc(c)}</div><div class="bad">Bot đang tắt — không có
+      panel API nào để chạy lệnh. Chỉ lệnh bật bot mới đi được qua cổng webgate.</div>`);
+    return;
+  }
   S.termHist = [c, ...(S.termHist || []).filter(x => x !== c)].slice(0, 60);
   S.termIdx = -1;
   if (inp && cmd == null) inp.value = '';
@@ -1842,6 +2057,12 @@ async function termSpawn(cmd) {
   const c = String(cmd != null ? cmd : (inp ? inp.value : '')).trim();
   if (!c) return;
   if (inp && cmd == null) inp.value = '';
+  if (botLooksOff()) {
+    if (looksLikeStartBot(c)) return termStartBot(c);
+    termPush(`<div class="cmd">$ ${esc(c)}</div><div class="bad">Bot đang tắt — không có
+      panel API nào để chạy nền lệnh này.</div>`);
+    return;
+  }
   termPush(`<div class="cmd">$ ${esc(c)} <span class="dim">(chạy nền)</span></div>`);
   try {
     const d = await api('/api/v4/terminal/spawn', { method: 'POST', body: { cmd: c } });
@@ -2441,6 +2662,7 @@ window.addBotSubmit = addBotSubmit;
 window.termRun = termRun; window.termSpawn = termSpawn; window.termTail = termTail;
 window.termQuick = termQuick; window.termClear = termClear; window.termEnable = termEnable;
 window.webPublic = webPublic; window.checkBotHeart = checkBotHeart;
+window.bootBot = bootBot; window.gateUrl = gateUrl;
 /* Tay cầm gỡ lỗi: mở console gõ `ZB.S` để xem trạng thái, `ZB.api('/api/status')` để gọi thử. */
 window.ZB = { S, api, go, draw, refresh, toast, start,
               apiBase: () => S.apiBase, setApiBase };
