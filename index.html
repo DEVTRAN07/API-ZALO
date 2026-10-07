@@ -542,9 +542,13 @@ function looksLikeStartBot(cmd) {
 async function startBotViaGate() {
   const url = gateUrl(), tok = gateCfg().token.trim();
   let r;
+  /* Mã cổng gửi qua HEADER, không nhét vào URL: URL còn nằm lại trong log
+     của cổng và lịch sử trình duyệt — log đọc được là vào được bot. */
+  const hdrs = tok ? { 'X-WebGate-Token': tok } : {};
   try {
-    r = await fetch(url + '/api/bot/start' + (tok ? '?token=' + encodeURIComponent(tok) : ''),
-      { method: 'POST', mode: 'cors', credentials: 'omit', cache: 'no-store' });
+    r = await fetch(url + '/api/bot/start',
+      { method: 'POST', mode: 'cors', credentials: 'omit', cache: 'no-store',
+        headers: hdrs });
   } catch (e) {
     return { ok: false, net: true,
              message: 'Không gọi được cổng ' + url + ' (' + String(e && e.message || e) + ')' };
@@ -586,6 +590,22 @@ function showBoot(on) {
   const g = $('#gurl');
   if (g && !g.value) g.value = gateUrl();
 }
+/* Chờ bot lên sau khi bấm ▶ Bật bot.
+   Hỏi NGAY (không ngủ trước), rồi hỏi dày lúc đầu — bot thường lên trong
+   3–10s nên nhịp 400ms cho cảm giác tức thì; thưa dần về sau cho đỡ tốn.
+   `onTick(giây)` để chỗ gọi hiện đồng hồ đếm, không phải ngồi nhìn màn hình
+   đứng im. Trả true khi bot đã phản hồi. */
+async function waitBotUp(onTick, maxMs) {
+  const limit = maxMs || 45000, t0 = Date.now();
+  let n = 0;
+  while (Date.now() - t0 < limit) {
+    if (await pingBot()) return true;
+    n++;
+    if (typeof onTick === 'function') onTick((Date.now() - t0) / 1000);
+    await new Promise(s => setTimeout(s, n <= 4 ? 400 : (n <= 12 ? 800 : 1500)));
+  }
+  return false;
+}
 async function bootBot() {
   const b = $('#lboot'), m = $('#bootmsg');
   if (b) b.disabled = true;
@@ -600,13 +620,13 @@ async function bootBot() {
       return;
     }
     if (m) m.textContent = res.message;
-    for (let i = 0; i < 20; i++) {          // đợi bot lên rồi tự vào
-      await new Promise(s => setTimeout(s, 1500));
-      if (await pingBot()) {
-        if (m) m.textContent = '🟢 Bot đã lên — đang vào…';
-        location.reload();
-        return;
-      }
+    const up = await waitBotUp(s => {
+      if (m) m.textContent = '⏳ Đang chờ bot lên… ' + s.toFixed(1) + 's';
+    });
+    if (up) {
+      if (m) m.textContent = '🟢 Bot đã lên — đang vào…';
+      location.reload();
+      return;
     }
     if (m) m.textContent = 'Đã gửi lệnh bật nhưng chưa thấy bot phản hồi — xem log ở trang cổng.';
   } finally { if (b) b.disabled = false; }
@@ -2007,16 +2027,11 @@ async function termStartBot(cmd) {
   const res = await startBotViaGate();
   termPush(`<div class="${res.ok ? 'ok' : 'bad'}">${esc(res.message)}</div>`);
   if (!res.ok) return res;
-  for (let i = 0; i < 20; i++) {
-    await new Promise(s => setTimeout(s, 1500));
-    try {
-      const h = await fetch(apiUrl('/api/v4/ping?_=' + Date.now()), { cache: 'no-store' });
-      if (h.ok) {
-        S.botUp = true;
-        termPush('<div class="ok">🟢 Bot đã lên — bấm ⟳ Làm mới để vào panel.</div>');
-        return res;
-      }
-    } catch (e) {}
+  const up = await waitBotUp();
+  if (up) {
+    S.botUp = true;
+    termPush('<div class="ok">🟢 Bot đã lên — bấm ⟳ Làm mới để vào panel.</div>');
+    return res;
   }
   termPush('<div class="bad">Chưa thấy bot phản hồi — mở trang cổng để xem log.</div>');
   return res;
