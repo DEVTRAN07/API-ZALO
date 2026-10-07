@@ -1,8 +1,8 @@
 {
  "version": 1,
- "generated": "2026-10-07T12:39:47+0700",
- "count": 509,
- "bytes": 30172213,
+ "generated": "2026-10-07T22:15:21+0700",
+ "count": 365,
+ "bytes": 20456953,
  "files": {
   "gif_studio/ack.gif": {
    "sha256": "f51a720fb86e519336025e0e1da603b45c25d26570f96f058e097a3128e144e8",
@@ -336,69 +336,69 @@
    "sha256": "cfc3a832ff06e8889c5095d080d49d7f3571f6b09fbbbb53d64c9d670764c257",
    "size": 70202
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/00.webp": {
-   "sha256": "f21f0a09cce9048b6ea5c8053a8b5effaed58c9b4b28e35a646364e6a1c46f69",
-   "size": 79660
+  "lottie_frames/aurora_h982_28_c6d43ed3/00.webp": {
+   "sha256": "fb56b48def5bc9adecac71fd593f0e22c6952d156321bfb0e89b7a2c026e4395",
+   "size": 103130
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/01.webp": {
-   "sha256": "2dfbdadbb93d2c18ca437736cb93bb92ce45a23b4cfc1cf3dacac5ba5b9e1434",
-   "size": 80006
+  "lottie_frames/aurora_h982_28_c6d43ed3/01.webp": {
+   "sha256": "d477f48179dae01bf0b5d5aa29788655e5b75dd2166c183746eb4df0a9030797",
+   "size": 103598
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/02.webp": {
-   "sha256": "bf5f4da639d604b483e6f9a320d4eae8c75e4abf3a7efa8573f58eeb71bab492",
-   "size": 80194
+  "lottie_frames/aurora_h982_28_c6d43ed3/02.webp": {
+   "sha256": "16401775c08ff6c235fda4dd42cbdc2a08be66723b1a99a76d27fae3ea6071f4",
+   "size": 103406
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/03.webp": {
-   "sha256": "0b7dbaef76d3cf0a2cc1b77affa7c0e25ef46b9303ceeec3ebd8a970f5d67bb0",
-   "size": 80400
+  "lottie_frames/aurora_h982_28_c6d43ed3/03.webp": {
+   "sha256": "b1f1752a79c01121854695bfcae3497980977fb1abe94896bb2b5576c24cfb0a",
+   "size": 103944
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/04.webp": {
-   "sha256": "d8001d4e9fbadb1bb3dcb02d01d5a953ed28fedabe8915248526c49856cd4fc6",
-   "size": 80340
+  "lottie_frames/aurora_h982_28_c6d43ed3/04.webp": {
+   "sha256": "4abb026a19432f4725b8708e620504c076f3845a476e87e0cb86aa16b0a40840",
+   "size": 103768
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/05.webp": {
-   "sha256": "c4dc340c53d4fad43de721ba9a1cec3e3389489b411b91f7e50374926b2924f4",
-   "size": 80390
+  "lottie_frames/aurora_h982_28_c6d43ed3/05.webp": {
+   "sha256": "72e2840aba90eeaabec2c9f6ab69090b75f6e6daf927eb8b93c68f932dc718d5",
+   "size": 103708
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/06.webp": {
-   "sha256": "f9a2d6f5e8227bec56cc5e58460383ea2386c770abc6841a28b69acc3c45b748",
-   "size": 80296
+  "lottie_frames/aurora_h982_28_c6d43ed3/06.webp": {
+   "sha256": "9638c54c8cfb2aba9e32b93b6a388c103b4f64d2a92d69e757bd959303282754",
+   "size": 103620
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/07.webp": {
-   "sha256": "27c7b9db2e639e04d610759dbfaac93093c133f970530c60a273aac455d754ef",
-   "size": 80356
+  "lottie_frames/aurora_h982_28_c6d43ed3/07.webp": {
+   "sha256": "cec82fc56349416283abf6dee869f88ac048fe93b113a9f1590496f8e3092d94",
+   "size": 103692
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/08.webp": {
-   "sha256": "90974c1cffaba7d37014be2acb588fb8a8266034cb8c51d78b66b3012ba0c953",
-   "size": 80326
+  "lottie_frames/aurora_h982_28_c6d43ed3/08.webp": {
+   "sha256": "5456c72ff016c2968e4816f806c4334e1f4e2a7d9935ca0be2d594937ccc582c",
+   "size": 103922
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/09.webp": {
-   "sha256": "8f79fd714207f3ae6b6ea1d45e70975ed4e1ac0cd10bd1e1db3654d66039f7cb",
-   "size": 80396
+  "lottie_frames/aurora_h982_28_c6d43ed3/09.webp": {
+   "sha256": "8db892f12ea6d434ef30bc60e145a8157dca04463ad68665664d36d2ff6b0cc1",
+   "size": 103704
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/10.webp": {
-   "sha256": "1ec8e31e9feb05732ba75bb6ab7a1289d6b3676b308aacb6b05487dcd9d92e4d",
-   "size": 80248
+  "lottie_frames/aurora_h982_28_c6d43ed3/10.webp": {
+   "sha256": "67a46ee9be0d3d87a2a60c415f1d48546c3f0eda2847ba43864a02b1f7daef2c",
+   "size": 103748
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/11.webp": {
-   "sha256": "2444c20dee8f0a5946e6e430f52fb9dd776961ac3ef82e60473dcdbacc5670cc",
-   "size": 80192
+  "lottie_frames/aurora_h982_28_c6d43ed3/11.webp": {
+   "sha256": "2c3bce68baf6b3f4cb98793b070920e13b6102283781d72182b8dcdae4b98db8",
+   "size": 103768
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/12.webp": {
-   "sha256": "9d0c519cbee3496856924226baa3aedaafb115fa7254e3f9e8b5a68b83e9c5ef",
-   "size": 80094
+  "lottie_frames/aurora_h982_28_c6d43ed3/12.webp": {
+   "sha256": "8284bdef5ed63c31c5b2618fcb2b549683f6edcc0242951d07b56abfffafe5d3",
+   "size": 103518
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/13.webp": {
-   "sha256": "2fd271d412788fbe8057a0eacc0b00ff47daa25921e1d3d3f9969736d0f404c1",
-   "size": 79970
+  "lottie_frames/aurora_h982_28_c6d43ed3/13.webp": {
+   "sha256": "29fd75794e6fd8fca67140c96eb4ae7e4a2f608c2402d8910de6fd1308cf51e1",
+   "size": 103428
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/14.webp": {
-   "sha256": "fc2b517a622a2246778b7696d435a1e1110070e70e9deea791ec1f67d0ee3f54",
-   "size": 79830
+  "lottie_frames/aurora_h982_28_c6d43ed3/14.webp": {
+   "sha256": "44b0c94f6d433920eff6a7607e15fa7aa23f22e24120e76f03c5ebcf7501aaa4",
+   "size": 103258
   },
-  "lottie_frames/aurora_h502_28_c6d43ed3/15.webp": {
-   "sha256": "af6604f38d370b50cdb298ac8d4fce9e2b665479f810432adcbf6a84823c32cc",
-   "size": 79740
+  "lottie_frames/aurora_h982_28_c6d43ed3/15.webp": {
+   "sha256": "9678db0fbf2feaedbabd37bb07906cdfc1a0ddcae50be4a9adc19d6680bbcb08",
+   "size": 103064
   },
   "lottie_frames/cyber_h340_28_9763e929/00.webp": {
    "sha256": "5d81e2566391a3d8021dd56959c156b2ace02d9fdaf250f13d61f408a2868f58",
@@ -719,326 +719,6 @@
   "lottie_frames/holo_h340_28_f1ec7c98/15.webp": {
    "sha256": "3da08b576b1cf632b92ee84857d9b1e2673810c99e53dbe99a01eb2e01f9a3c2",
    "size": 66738
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/00.webp": {
-   "sha256": "fef738a1a8a7434a426baedd44a2bb09c2cc800dee07d4ca810ea7586bb5992e",
-   "size": 68360
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/01.webp": {
-   "sha256": "2a33871bd0a1d937d9fe11754fc7bf36d930a763547ff8e0c37155d9f8b28ac8",
-   "size": 68474
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/02.webp": {
-   "sha256": "278a75d4f7d09304801f0c34ce7a8f8ea5b85dbe9b380cb6f5df10a2470b2ccf",
-   "size": 68424
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/03.webp": {
-   "sha256": "4c4cf51a82ac0df313160dd9afe138d3a1cedfcd0a8f312822687c22ddc07f0d",
-   "size": 68624
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/04.webp": {
-   "sha256": "100576e94ce14713c44a8d06ffd0043fd93d42e044b18a4877710413b87422ad",
-   "size": 68492
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/05.webp": {
-   "sha256": "944c74a9c7c4ee9d5d4c499443caef595e6add7b768f5e7564f27332304eb7c0",
-   "size": 68526
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/06.webp": {
-   "sha256": "32efb0bc307c4e61eb1dda2d1b0ddbbdfbd29b8a35ba6ed62dfdec59acef9921",
-   "size": 68552
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/07.webp": {
-   "sha256": "40bd408ecbb6c89f0f4bfff3d0a218232612437995bbbee5f71db669cb2fd814",
-   "size": 68436
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/08.webp": {
-   "sha256": "c232b8567d408581dd9584910fa4dc99d19cb7727cbf4652a51de8e2fd4b87cb",
-   "size": 68450
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/09.webp": {
-   "sha256": "85981aa56335d996e1f2fc091c64685b209558ec4a0fc54c9bc97239e85dc364",
-   "size": 68402
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/10.webp": {
-   "sha256": "c463094d58d30eef17b5bed8c6141c7a5641419ddfad0b2a320c168e1c1fea11",
-   "size": 68500
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/11.webp": {
-   "sha256": "7eaf8bca085e6c5439f5cf7eca1b8fa53fb07c9710c7d83f92ca6bc3d16a6884",
-   "size": 68426
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/12.webp": {
-   "sha256": "b030b4fa05b177d95b93577a30d99d73acf259e0895d4a366a1c2e524cdbdb0a",
-   "size": 68408
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/13.webp": {
-   "sha256": "3f9a96b071d521bd895f2a6d17c7d8935abd372e17a516d4903547aca865b7d7",
-   "size": 68300
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/14.webp": {
-   "sha256": "395ef5314d8382884639b6d7482dd82ba3643cf813bc00803b548c29c0c8a98b",
-   "size": 68268
-  },
-  "lottie_frames/holo_h400_28_f1ec7c98/15.webp": {
-   "sha256": "2a744d30fdcef9fef49324b1d11221916c4c9f4d34bf012e15181b2bea84cf4f",
-   "size": 68198
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/00.webp": {
-   "sha256": "c0e850e42ddf2845500c1a719382d07af9e08f7eac24a664761c2cc6af23d2e9",
-   "size": 70006
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/01.webp": {
-   "sha256": "a298304f8d1945b8e84f0df5c49c78099eb6601fe9e8dfee97f08b652a2b50d7",
-   "size": 70310
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/02.webp": {
-   "sha256": "8700205988795c6cdeda877c06fb1415dfeb9be04124a23ae487f4a1081a9e18",
-   "size": 70350
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/03.webp": {
-   "sha256": "1a02a794d6ff211e908e9d1853818dfaff72b905e3f9b59932180a78339ae0f2",
-   "size": 70368
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/04.webp": {
-   "sha256": "bf3b28b2173a10dbb0bdbb38b4f2c6a1ea81642f364841fa238cd91c699e9731",
-   "size": 70416
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/05.webp": {
-   "sha256": "645a4af4fc4d8c5f23022a60131297e2be9b93902bd2b90a057c3e90958157fa",
-   "size": 70318
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/06.webp": {
-   "sha256": "dc54ae3037484899c30b04b2108eefbb3b418820220d1f573f98778b58d35a98",
-   "size": 70406
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/07.webp": {
-   "sha256": "03d957a8a213cc0c1c077907149ebc4ac181b86be841e49395e72c62eb65817d",
-   "size": 70382
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/08.webp": {
-   "sha256": "2a605028578972efcbae3c8f8ccbc9823c5d67cefdab0b93761b591aa4988065",
-   "size": 70302
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/09.webp": {
-   "sha256": "d29535670c19e2d8341dc857d8b53d7df2bf38f4f0e5446124a365902eb5783d",
-   "size": 70364
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/10.webp": {
-   "sha256": "20b6678c343d3c445859551d757b1eb81622a214f865f8792fd83c1865a84391",
-   "size": 70228
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/11.webp": {
-   "sha256": "b8b43b4c81de856904fd5419a28dedddd1eb87344b3e486b4c780b3a42ab2141",
-   "size": 70278
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/12.webp": {
-   "sha256": "5e64a882dd93bc2571b89c19ea14054a4606eaff0fc11b6c2797258e02554ef5",
-   "size": 70174
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/13.webp": {
-   "sha256": "e4a25a44221dd0605aac8f62b611e5a08f547ed6e0a9b3b4bde57b524a9a89ed",
-   "size": 70122
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/14.webp": {
-   "sha256": "63f123ed335a3ede4d7dd7da8c6989bb501e5445e4b252af2cf9697d0b0124b1",
-   "size": 70100
-  },
-  "lottie_frames/holo_h418_28_f1ec7c98/15.webp": {
-   "sha256": "a8e28d6d8df2f37f87f689d27be1ef3f72037e03fd1b8aca28d25d7280c692e4",
-   "size": 70054
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/00.webp": {
-   "sha256": "0105c604e503e25f4ca40deaae0b608100b1d8f512d9ec5ec18200c1911d6a0b",
-   "size": 75004
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/01.webp": {
-   "sha256": "3f00647bb5fc62c7e728b5002d24c5a9d7b63f1fbec797f1954e185253c404cf",
-   "size": 74988
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/02.webp": {
-   "sha256": "55f1ae177a68add86392359a20618f7ad5bcf7beade647c62517e5fa8db5195e",
-   "size": 75240
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/03.webp": {
-   "sha256": "e1b7b32922d0858c1a1f973913a36c93b69c98b2c5ec24ae36d4eef0f3c2c74c",
-   "size": 75126
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/04.webp": {
-   "sha256": "ccd4bc2ff06740b7f60c4cff69fcf6069d3ca9afea15c7c98f6074935ddfd7bb",
-   "size": 75136
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/05.webp": {
-   "sha256": "60c6ec66b4ee6cd60dcc58022318f74728a43f6a17ef8b9cffe08907261e0ba5",
-   "size": 75144
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/06.webp": {
-   "sha256": "de17c459ee264464d41cacec3bfd96152632eb7583e85a35d66475f306a3172a",
-   "size": 75250
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/07.webp": {
-   "sha256": "1c6e6be4875b151ef058076488b0bf1f614c2756b4c19f6d89a16a1a6a3f94ed",
-   "size": 75170
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/08.webp": {
-   "sha256": "7ce1eeba3a374661bbd51a3793da6780f6ea1371bf75edb790d7e3f8cc92a696",
-   "size": 75170
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/09.webp": {
-   "sha256": "97a6e94df93afd24ad261fef798be29c78b97b32a54ce4fd8e5df3c59e0d6e02",
-   "size": 75130
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/10.webp": {
-   "sha256": "6868101110de5d3adaae8fcb80a52ba2ee64054235d112298a13eca4a3bef12c",
-   "size": 75152
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/11.webp": {
-   "sha256": "96c08001bb1115cafe337dbfdf0637324b3001e91858f146be7ebda9ac75292a",
-   "size": 75164
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/12.webp": {
-   "sha256": "674a2cc0122b473e2c8e838e1eb46cd40634b4731be02a17f532bd927468933b",
-   "size": 75102
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/13.webp": {
-   "sha256": "06a1b78adeaf72e59b530d073eecbc8aaedf4a328550785599e663aae9f5fa51",
-   "size": 74986
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/14.webp": {
-   "sha256": "e651b88f4fa1bc1657340e83aee0f53c17242803a2bfb2b1a0127a6a49750386",
-   "size": 75004
-  },
-  "lottie_frames/holo_h468_28_f1ec7c98/15.webp": {
-   "sha256": "c4b4e04948348c0244b2923f65d34d0dce89f7307fec27009dd129eb94569297",
-   "size": 74956
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/00.webp": {
-   "sha256": "ab621b1f4a9e0b5f2f5e2dae50f2aa00f89c06c73b8a879ad90951c51452508d",
-   "size": 77718
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/01.webp": {
-   "sha256": "a272f78442ccfaae0eacfe1f62c76c05f7b3b8a9cd71fed373ca0b5bb3befa3a",
-   "size": 77850
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/02.webp": {
-   "sha256": "21bdb30e3a421207f9a85e684ea440e315f759e9ef15f83c1987ade2b39e1950",
-   "size": 77826
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/03.webp": {
-   "sha256": "787d25d407a59c38f4308b460085f420950d1a3301a1894868a2e6db70f9175b",
-   "size": 77856
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/04.webp": {
-   "sha256": "dc9f7d92812b2dbec6de331014953cf530409be937ffd27a2ee588ca70d7f6ad",
-   "size": 77898
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/05.webp": {
-   "sha256": "0291f515b80464f4e3e89b2f144f95e5b6624f91ad7263427f4a1555195ffe93",
-   "size": 77912
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/06.webp": {
-   "sha256": "0211ffd9568b0f6a960c6da5a993ddf950ebaf4905f6e8aecaed27339163ed3b",
-   "size": 77814
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/07.webp": {
-   "sha256": "6125741411b76d878ff5d0d947883c0a1bfe82ac801184b1526c0ad1138d64d6",
-   "size": 77880
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/08.webp": {
-   "sha256": "9949d62fc500fb23f676e72eac81a27ce3c0b86e266302a431f8d003460c31a1",
-   "size": 78076
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/09.webp": {
-   "sha256": "4b834cf60f5ef6479ce5a0d2c7d9aa0ceecf5e792785fc1f8222aece5fb3713f",
-   "size": 77950
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/10.webp": {
-   "sha256": "34ba98aef0f3d78db913008945743b3223d1a28b600e666dc9b0d6d06d32a0f6",
-   "size": 77954
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/11.webp": {
-   "sha256": "05698d8cf3f626320337ce98e1e4caf307c69ba0b06711b2bfb163082e02d386",
-   "size": 77900
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/12.webp": {
-   "sha256": "1995080eae68c31a4ddb419520825d9afd7ec182983df85bd847505b99c5ddc1",
-   "size": 78014
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/13.webp": {
-   "sha256": "60c288e40379236cc8e1a3f8b77e1470f808cfb0a569468e95523860041674cc",
-   "size": 77726
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/14.webp": {
-   "sha256": "fadc41549eeda787199fff21a14715ae2606b2451e425049e06524e8ada4a6e6",
-   "size": 77708
-  },
-  "lottie_frames/holo_h544_28_f1ec7c98/15.webp": {
-   "sha256": "7cac1833b83457ba803df64b6379ccd8e36f4b44d5b361ad6f9715546c584d9c",
-   "size": 77728
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/00.webp": {
-   "sha256": "f947daff2e130a12ddee8d3dca0d43aae8a295cda07a46748752d7fda9a47881",
-   "size": 78064
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/01.webp": {
-   "sha256": "218dad3451b45c826a10234509600edf197d4501c061c52008f5afaad83d6271",
-   "size": 78272
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/02.webp": {
-   "sha256": "127e6c365cc063faa7423ba69f71780fd7185aa9e2da71c641741625a545e2e8",
-   "size": 78352
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/03.webp": {
-   "sha256": "fdffcc4e2c969df35a3d29655bf823af0210b323fc0316fe08d37248376159f2",
-   "size": 78436
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/04.webp": {
-   "sha256": "1b82cc8f8d66d3d401c7caffbf692fde605b9ce12bb3ce8d8eda26096f19b8d0",
-   "size": 78364
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/05.webp": {
-   "sha256": "ecb9e77e48c974898affcab52a29f85a63b426ef1ca89cc7b2273a8805cb443e",
-   "size": 78314
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/06.webp": {
-   "sha256": "75d7263d983e776558cdf0889fda75b68c44b2f59c5277430e187ed2b4b4a0d9",
-   "size": 78220
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/07.webp": {
-   "sha256": "4a5b64b691b73fdebce4d65e1cb8ffccc35776ca1f2a0ab70b8a29dd9915cb38",
-   "size": 78320
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/08.webp": {
-   "sha256": "6d806dc7d800df8e4e8ddcd59de01a1f65be717a8ccf55df004d87aafd6bbf1e",
-   "size": 78346
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/09.webp": {
-   "sha256": "28d0dfe56a5c51049cd3922f9f40910cbf2f93b1115a8572c267da7b643d68fa",
-   "size": 78304
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/10.webp": {
-   "sha256": "485033ca3b01e50a68e39f8c795454767289f9a60efcbb5d0b7c59883434af28",
-   "size": 78346
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/11.webp": {
-   "sha256": "aaca1b29d2919fac3cf991d777d3a2d5faec53f4a406e442b926454058be3116",
-   "size": 78398
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/12.webp": {
-   "sha256": "e6ac50d96729aa8ea5b72377514a700339e756aaaca8b771a8463147a7869c0e",
-   "size": 78258
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/13.webp": {
-   "sha256": "495a99beced6715cee925b515a02595eb4a9418bba4c89dcd787ecdabe5ad593",
-   "size": 78258
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/14.webp": {
-   "sha256": "0c7c2988daa4601153fa2bce61c5ce06d6aadb7d912888677b79c65e009636e8",
-   "size": 78278
-  },
-  "lottie_frames/holo_h568_28_f1ec7c98/15.webp": {
-   "sha256": "a7f4b7064f1549d3085492a8c8d9038b092fb2089a2b80a4c77ed88b6a155151",
-   "size": 78172
   },
   "lottie_frames/hyperspace_h340_28_4c8be8ab/00.webp": {
    "sha256": "7de78bb4375b896abf0dfb7dd9507fa09f5c8bca2cfa0e4b3f893ff2bdcc9d8c",
@@ -1488,134 +1168,6 @@
    "sha256": "7be1d8233331614c5d18cb96a122f0a0f90a084e9978bff0ca905c53216ac715",
    "size": 51684
   },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/00.webp": {
-   "sha256": "cb93d0b7033d1bf9f9acee1cf4b14aab342b734ff617fc847f5b270f7032e512",
-   "size": 73380
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/01.webp": {
-   "sha256": "37ead22d2e661bbcc5ca89ddaeeb74bee4079654ccd2d7e9f2c7c61505023ef7",
-   "size": 73596
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/02.webp": {
-   "sha256": "45d3de8a60ce5060e373aa679634b9140069de44f6924e4e2b5c25e110f488a8",
-   "size": 73524
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/03.webp": {
-   "sha256": "87997d506daefaaa45b86f99ec75af422a1d11049fd2f984c14265e5bc4f7b5c",
-   "size": 73700
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/04.webp": {
-   "sha256": "132fdec17934b4724e3056167734c446a08419174fc52570f28dc9b5cfcf6aa9",
-   "size": 73680
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/05.webp": {
-   "sha256": "1ba16317e1aeae37d74abb6aa2cace961fd2fd425b32f8ff7b1b19cfecbfbd1c",
-   "size": 73638
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/06.webp": {
-   "sha256": "063c6585007c12072f9778ce43341afe89dd20cab5937ad50a99fa3e520b4dd0",
-   "size": 73592
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/07.webp": {
-   "sha256": "d0ff346033f9cec4c911174c58d099033e1d7078dc833e6e4dbe88f4ef9b6c5c",
-   "size": 73704
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/08.webp": {
-   "sha256": "97ae66e3ad5208feeb90e9e312db7a685211c186583eda5b35bde69d9b88591c",
-   "size": 73672
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/09.webp": {
-   "sha256": "5c65b549aca9f644b74a18f1531cf87861ba53fd2bf8cd82621ce18bdbeae6df",
-   "size": 73636
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/10.webp": {
-   "sha256": "8f0bc828b3d2fd37b74f92d5b45d2065a448fe7d9c774ecdcb389d347353d6dd",
-   "size": 73572
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/11.webp": {
-   "sha256": "a57ee3b8a6ddc99d23b8f56d84c28fcf009f127bf1c8022906e6fcd86730da7d",
-   "size": 73542
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/12.webp": {
-   "sha256": "71f03878f269c5b2af02274e281ef79743b552a1a6231b496d82d3ac4deda58a",
-   "size": 73604
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/13.webp": {
-   "sha256": "ab2f27d0b27cadd70cb1abd5602bcd7d44fa16d2786ac2c4d95b732cc91eceab",
-   "size": 73508
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/14.webp": {
-   "sha256": "82a5c06763d4e47958d84b6908fe9a7edff5db2ef301830cda50dc03b84a6410",
-   "size": 73482
-  },
-  "lottie_frames/profile_tiktok_h532_28_8144fd7e/15.webp": {
-   "sha256": "27b876c4e8f5f7060980898b25b25d8f06e98d858e49c4c1085e56173efe3cac",
-   "size": 73374
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/00.webp": {
-   "sha256": "c74cc55ed6f044f31366e85855b7648bc33aea9613d4f3e6423ed29f41b5ebc0",
-   "size": 92672
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/01.webp": {
-   "sha256": "ad7d31eedf2f6d5f435c636f8ee808de290fc9be166f0b4103cb08efcc1f0bb5",
-   "size": 92744
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/02.webp": {
-   "sha256": "e521adae52b88f8d3e7bb77390e7b408d6793f7b05b49c349e654cefdbb56302",
-   "size": 92822
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/03.webp": {
-   "sha256": "3e9aee00b0b79289d4408b24163b13236fe03db38d8b06dfc2706500785b8c77",
-   "size": 92862
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/04.webp": {
-   "sha256": "760f5d56fc87cc96695a60481e3190e8f0708bdf2c16e894793fb1bdef83b384",
-   "size": 93030
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/05.webp": {
-   "sha256": "f9ffb4c95774fe5efaac6c52dab782caa13fdf17a732dd2640bbd3157551a34b",
-   "size": 92994
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/06.webp": {
-   "sha256": "c109fc81d9fc61080820658e2c3a8d70854a81b2fabb7bb5ab339a810d6788c3",
-   "size": 93002
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/07.webp": {
-   "sha256": "379a204ecede8cea9cec36f6c482e477e5115e17a4dcbd3fdfc0566669cbcbdd",
-   "size": 92914
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/08.webp": {
-   "sha256": "4428dba262a7c17f23bb054139b66161a5aaa16694cf1d78635991e23313148c",
-   "size": 93122
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/09.webp": {
-   "sha256": "58644a3553e70dbb4f78d95da2bf1ef8a56924afd30ebb02eee83fd706a6f9f9",
-   "size": 93208
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/10.webp": {
-   "sha256": "1f44f080043e64e3937e38459f3842f87ed97b4558e76f338c25997861016ffd",
-   "size": 93052
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/11.webp": {
-   "sha256": "14c389cc6bcbf4be03e5f5672a4fe2a3f56a631aa07c571e33901f76455966b0",
-   "size": 92970
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/12.webp": {
-   "sha256": "e3386230695e4bfd6b1c4a583d970f845e1f9ecf1761a1588332e2c91b780068",
-   "size": 93072
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/13.webp": {
-   "sha256": "d8a2a4dff2d35db492cdf33c924d25875a096eea68c26a158740661238e10dc6",
-   "size": 92968
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/14.webp": {
-   "sha256": "dd26fb9fcaf987ef849cb5cc06f486e1984ac391600058c610a96edb9bb52ead",
-   "size": 92904
-  },
-  "lottie_frames/profile_tiktok_h766_28_8144fd7e/15.webp": {
-   "sha256": "ba626abc5a0d40fdfa57a65fdbf3da53e5c2fe7e22008a70eb6b638cbd570e67",
-   "size": 92910
-  },
   "lottie_frames/sakura_h340_28_d9ac7318/00.webp": {
    "sha256": "8693d5bcecc1dbd7e0d6854a0d7ce1bc42654559254bc16b61d71a91b2c2a0c9",
    "size": 52610
@@ -1871,134 +1423,6 @@
   "lottie_frames/vampire_h340_28_4272f9b3/15.webp": {
    "sha256": "7369cf407a3de18a32cd6cc32d56a1c634d3e27ef3510d07505f10f049bd8fbc",
    "size": 44660
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/00.webp": {
-   "sha256": "b7f275f02e95a3203be7ce4ad97f47840b66b329eb000475eb9c66ad42288158",
-   "size": 61034
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/01.webp": {
-   "sha256": "b1ef2413f861132c7de43bdd53c82063ed996f1d1f914ed070ac698e0b0a2aa6",
-   "size": 61188
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/02.webp": {
-   "sha256": "b52f37d82c1ccb2a2ce4e9d660f799fbacd60f9267973bceec283cf10c4818bf",
-   "size": 61282
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/03.webp": {
-   "sha256": "f34be4902a8680aa320c982dd30905d38384914bd624a593890d87aa4a74f98b",
-   "size": 61308
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/04.webp": {
-   "sha256": "72fc19e934661530baba154c6d5ebdb52ceaf31e2a3064cf9fc88f3cd25ab775",
-   "size": 61282
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/05.webp": {
-   "sha256": "467b73576fdbf3a213e050e3245c1fa007bb9b824ff55ef7fe2927e58a813d1f",
-   "size": 61324
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/06.webp": {
-   "sha256": "760a14b2aa5fb712ec2a710641c4367ef004610b914237535b9b58a0e02fe4f7",
-   "size": 61336
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/07.webp": {
-   "sha256": "a497bb064e67ce070548b73a6559a9a486ac7191c72c8a02bcf92370a5a03360",
-   "size": 61336
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/08.webp": {
-   "sha256": "e15226cdbdf0a748b23f878c98b37a51f66601c15313f6feb71cfa3c4877900e",
-   "size": 61312
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/09.webp": {
-   "sha256": "21fed5e9ba4f85dc3582e2af155c901788c5dbf812b7927d0bcbfa81f64cce19",
-   "size": 61290
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/10.webp": {
-   "sha256": "ddfa456300946da4c12266e02f0a9c46458062bb0f79d0092a11db84ab7b493b",
-   "size": 61246
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/11.webp": {
-   "sha256": "469722910ec25744feaff7f67435e28366257fe4cf814e8ef41211ef585c3c81",
-   "size": 61228
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/12.webp": {
-   "sha256": "eb4c0bdf9e85edf0e998aa556a6a210e50e95d1e210951d77a2a2635cb71789f",
-   "size": 61150
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/13.webp": {
-   "sha256": "bf2cf1aac5aca0046e224553733dd28a06951408f52209e045444a7656c7017a",
-   "size": 61126
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/14.webp": {
-   "sha256": "c8b09caeeb256db4bc716fbeec2cb93d8d9c601358f2a2540547325bcf73bb4e",
-   "size": 61006
-  },
-  "lottie_frames/welcome_join_h420_28_285d50a8/15.webp": {
-   "sha256": "7e828fc077f1a57d1ddfab0c8d307e07f329635acc9be344860600cd8acc6772",
-   "size": 61000
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/00.webp": {
-   "sha256": "59b92b27508658fb8aa32d155e11f441a723181edeea247859703df8282c399a",
-   "size": 32726
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/01.webp": {
-   "sha256": "86c92ac506a22e80e5a69bca22b1dc5a69bf320d48c857d1c0a43a1c08c9dbc6",
-   "size": 32918
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/02.webp": {
-   "sha256": "ebbef95b8c8112a95ff9cd30e69c3c8abf02db35f74e91766473063700d36aa6",
-   "size": 32822
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/03.webp": {
-   "sha256": "6efc481b028862d9824d2388ae16e09b48eba420429ada5d79f857972c19b1c7",
-   "size": 32996
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/04.webp": {
-   "sha256": "919a7c6b970b9c560cc34c65dcdbd99e41461ca4eb222a01ce677cecba85fa04",
-   "size": 32996
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/05.webp": {
-   "sha256": "38892d1e65cb5257c84ce513789146a667bf48bea3839282f37bcfa03b400557",
-   "size": 33076
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/06.webp": {
-   "sha256": "9c8d0306a67ee4d5da412c046a259ec059e30f2ae9dc84c93ec1d3089be55de6",
-   "size": 33016
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/07.webp": {
-   "sha256": "d79989f418e9f3d368fe0b9846946a249eaff7bdebff06b96eb7a90a44bfee8a",
-   "size": 33168
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/08.webp": {
-   "sha256": "45511d9d0cd561f5f982bafd1507a6fc952b93b8eac6e9bb1b3d7e46a4f9ae4e",
-   "size": 33058
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/09.webp": {
-   "sha256": "e67156620a7e277f7629df05c59699ca846d0f55eef4de47251171af2488f746",
-   "size": 33006
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/10.webp": {
-   "sha256": "ef91438e30a58ebc34a7e339647ddd2764f7798fa62a18a661f7dd50bcc0dc43",
-   "size": 33002
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/11.webp": {
-   "sha256": "3f154a896d588f075f316ae5a6fa8f70aed10e8c359f44b0fbb1e6ba433f34d5",
-   "size": 32864
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/12.webp": {
-   "sha256": "b11de9cc46db0469639ed722cdb5f110205e4cc3b3b74cecbf43d8dfed2028af",
-   "size": 32920
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/13.webp": {
-   "sha256": "12ff15b5b681f4b14e4ecbfd2f43bb92c6f092b62fc989d0ae43d4a5b85e51dd",
-   "size": 32750
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/14.webp": {
-   "sha256": "3fe289e35d07ca761a62158f332152c0c868e697f1a8c2a0748a84336abed2ea",
-   "size": 32816
-  },
-  "lottie_frames/welcome_leave_h420_28_f56cfa25/15.webp": {
-   "sha256": "9c3251991ddd5c768038e3c8bc7457796cb629a03cf91d3a43a5fc99da9f0d17",
-   "size": 32814
   },
   "sample_images/album_banner.jpg": {
    "sha256": "7dd5c23f5ee8af0d547e85cc16ded63b1403b4957f2b410d035e0afdbb8cce5c",
