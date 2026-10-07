@@ -1,8 +1,8 @@
 {
  "version": 1,
- "generated": "2026-10-07T07:42:37+0700",
- "count": 508,
- "bytes": 30092734,
+ "generated": "2026-10-07T12:39:47+0700",
+ "count": 509,
+ "bytes": 30172213,
  "files": {
   "gif_studio/ack.gif": {
    "sha256": "f51a720fb86e519336025e0e1da603b45c25d26570f96f058e097a3128e144e8",
@@ -203,6 +203,10 @@
   "gif_studio/setname.gif": {
    "sha256": "9395500199303063a9515575346b95d1ed6ad94cd88daa441138a0c699eb4c48",
    "size": 82725
+  },
+  "gif_studio/shared.gif": {
+   "sha256": "23a053b234811fb2f864b357ce789353cedf11ae09d41d1797ab55d58d79edfc",
+   "size": 79479
   },
   "gif_studio/spt.jpg": {
    "sha256": "76ecf3ee40db98896a91acd670a51fb59aea1de2198ae411eb26f34793a83a87",
