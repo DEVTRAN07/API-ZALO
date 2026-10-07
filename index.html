@@ -562,9 +562,12 @@ async function startBotViaGate() {
   if (!r.ok || j.ok === false) {
     return { ok: false, message: j.message || ('Cổng trả lỗi ' + r.status) };
   }
-  // Cổng đã trả lời "đang chạy sẵn" → đừng bắt người dùng chờ 45s vô ích.
-  const already = /đang chạy sẵn/.test(String(j.message || ''));
-  return { ok: true, already, message: j.message || 'Đã gửi lệnh bật bot…' };
+  // Cổng đã CHỨNG MINH panel sống ("đang chạy sẵn", hoặc "đã lên sau Ns")
+  // → đừng bắt người dùng chờ 45s rồi báo "chưa thấy bot phản hồi": khi
+  // trang này không có địa chỉ bot thì ping không bao giờ tới nơi.
+  const msg = String(j.message || '');
+  const panelUp = /đang chạy sẵn|đã lên sau|Đã bật bot/i.test(msg);
+  return { ok: true, panelUp, message: msg || 'Đã gửi lệnh bật bot…' };
 }
 function saveGateCfg(url, token) {
   try {
@@ -624,13 +627,13 @@ async function bootBot() {
     if (m) m.textContent = res.message;
     const up = await waitBotUp(s => {
       if (m) m.textContent = '⏳ Đang chờ bot lên… ' + s.toFixed(1) + 's';
-    }, res.already ? 6000 : 45000);        // bot đã chạy sẵn → chỉ thử nhanh
+    }, res.panelUp ? 6000 : 45000);        // cổng đã xác nhận → chỉ thử nhanh
     if (up) {
       if (m) m.textContent = '🟢 Bot đã lên — đang vào…';
       location.reload();
       return;
     }
-    if (m) m.textContent = res.already
+    if (m) m.textContent = res.panelUp
       ? res.message + ' Nhưng trang này chưa gọi được panel API — muốn xem số liệu thì mở panel trên máy chạy bot.'
       : 'Đã gửi lệnh bật nhưng chưa thấy bot phản hồi — xem log ở trang cổng.';
   } finally { if (b) b.disabled = false; }
@@ -652,18 +655,18 @@ async function dashStartBot() {
     const up = await waitBotUp(s => {
       say('⏳ Đang chờ bot lên… ' + s.toFixed(1) + 's');
       if (btn) btn.textContent = '⏳ ' + s.toFixed(1) + 's';
-    }, res.already ? 6000 : 45000);        // bot đã chạy sẵn → chỉ thử nhanh
+    }, res.panelUp ? 6000 : 45000);        // cổng đã xác nhận → chỉ thử nhanh
     S.botUp = up ? true : S.botUp;
-    if (up || res.already) { S.ov = null; await refresh(); draw(); }
+    if (up || res.panelUp) { S.ov = null; await refresh(); draw(); }
     if (up) {
       toast('🟢 Bot đã lên', 'g');
       return;
     }
     // draw() vừa dựng lại card nên phải nói SAU cùng mới không bị ghi đè.
-    say(res.already
+    say(res.panelUp
       ? res.message + ' Nhưng trang này chưa gọi được panel API — muốn xem số liệu thì mở panel trên máy chạy bot.'
       : 'Đã gửi lệnh bật nhưng chưa thấy bot phản hồi — xem log ở trang cổng.');
-    toast(res.already ? res.message : 'Chưa thấy bot phản hồi — mở trang cổng để xem log', 'r');
+    toast(res.panelUp ? res.message : 'Chưa thấy bot phản hồi — mở trang cổng để xem log', 'r');
   } finally {
     S.booting = false;
     if (btn) { btn.disabled = false; btn.textContent = '▶ Bật bot'; }
@@ -1053,12 +1056,16 @@ const V = {};
    Chỉ nói thẳng sự thật + nút ▶ Bật bot qua cổng webgate 24/7. */
 function dashOff() {
   const g = gateUrl();
+  // Pages trần (không ?api=) thì mình CHƯA BIẾT địa chỉ bot — khác với
+  // "bot tắt": nói sai sẽ làm người dùng tưởng bot chết khi nó vẫn chạy.
+  const blind = !S.apiBase && location.protocol === 'https:';
   return `
-    <div class="alert r" style="margin-bottom:14px"><span>🔌</span><div>
-      <b>Bot đang tắt — trang này không gọi được API nào của panel</b>
-      <div class="hint" style="margin-top:5px">Panel API sống <b>trong tiến trình bot</b>,
-        nên bot tắt là không có số liệu nào cả (đằng sau đây KHÔNG phải số liệu cũ).
-        Việc bật lại do <b>cổng webgate</b> đảm nhiệm — cổng chạy 24/7, bot tắt cổng vẫn sống.</div>
+    <div class="alert r" style="margin-bottom:14px"><span>${blind ? '📡' : '🔌'}</span><div>
+      <b>${blind ? 'Chưa biết địa chỉ bot — trang này không gọi được panel API'
+                 : 'Bot đang tắt — trang này không gọi được API nào của panel'}</b>
+      <div class="hint" style="margin-top:5px">${blind
+        ? 'Bản Pages trần chỉ gọi được bot khi có địa chỉ: mở link kèm <span class="mono">?api=http://&lt;ip-máy-bot&gt;:5000</span> (chỉ dùng được trên chính máy bot), hoặc để bot ghim địa chỉ <span class="mono">https</span> lên kho dữ liệu. Bot có THỂ vẫn đang chạy — muốn biết chắc thì bấm ▶: cổng webgate trả lời thật.'
+        : 'Panel API sống <b>trong tiến trình bot</b>, nên bot tắt là không có số liệu nào cả (đằng sau đây KHÔNG phải số liệu cũ). Việc bật lại do <b>cổng webgate</b> đảm nhiệm — cổng chạy 24/7, bot tắt cổng vẫn sống.'}</div>
       <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:8px">
         <button class="btn pri" id="dashboot" type="button"
                 onclick="dashStartBot()">▶ Bật bot</button>
@@ -2138,13 +2145,13 @@ async function termStartBot(cmd) {
   const res = await startBotViaGate();
   termPush(`<div class="${res.ok ? 'ok' : 'bad'}">${esc(res.message)}</div>`);
   if (!res.ok) return res;
-  const up = await waitBotUp(undefined, res.already ? 6000 : 45000);
+  const up = await waitBotUp(undefined, res.panelUp ? 6000 : 45000);
   if (up) {
     S.botUp = true;
     termPush('<div class="ok">🟢 Bot đã lên — bấm ⟳ Làm mới để vào panel.</div>');
     return res;
   }
-  termPush(res.already
+  termPush(res.panelUp
     ? `<div class="bad">${esc(res.message)} — nhưng Terminal chưa gọi được panel API.</div>`
     : '<div class="bad">Chưa thấy bot phản hồi — mở trang cổng để xem log.</div>');
   return res;
