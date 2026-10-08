@@ -924,7 +924,10 @@ async function api(path, opt={}) {
           + 'Bấm ▶ Bật bot (cổng webgate) rồi thử lại.');
     }
     S.botUp = true;                  // server trả lời JSON → bot đang sống
-    throw new Error(d.error || ('HTTP ' + r.status));
+    // Lỗi THIẾT KẾ (ok:false kèm message — vd auto-pin báo "tailscale chưa
+    // chạy") phải lộ MESSAGE: trước đây chỉ đọc d.error nên người dùng nhận
+    // "HTTP 200" khô khan và nhánh hiện lý do trong webAutoPin thành dead code.
+    throw new Error(d.error || d.message || ('HTTP ' + r.status));
   }
   S.botUp = true;
   return d;
@@ -2540,7 +2543,13 @@ async function webAutoPin(btn) {
   const old = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = '⏳ đang dựng https…'; }
   try {
-    const d = await api('/api/v4/web/autopin', { method: 'POST' });
+    let d;
+    try { d = await api('/api/v4/web/autopin', { method: 'POST' }); }
+    catch (e) {
+      // api() NÉM lỗi khi body ok:false — gói lại thành kết quả THẤT BẠI có
+      // message để nhánh dưới hiện đúng lý do (vd "tailscale chưa chạy").
+      d = { ok: false, message: e.message };
+    }
     toast(d.ok ? ('🔐 ' + (d.url || 'đã ghim địa chỉ https'))
                : ('🛰 ' + (d.message || 'Chưa ghim được địa chỉ https')),
           d.ok ? 'g' : 'r');
