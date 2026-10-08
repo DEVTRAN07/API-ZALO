@@ -376,6 +376,9 @@ details.catsec>summary .tag{margin-left:auto}
       <div class="spacer"></div>
       <span class="pill" id="rtt"><span class="dot"></span> — ms</span>
       <span class="pill" id="live"><span class="dot g"></span> <span>live</span></span>
+      <button class="btn dgr" id="topstop" style="display:none"
+              title="Tắt bot an toàn — cần mã cổng/mật khẩu cổng (chỉ hiện khi đã đăng nhập)"
+              onclick="dashStopBot()">■ Tắt bot</button>
       <button class="btn" id="rf">⟳ Làm mới</button>
     </div>
     <div id="view"></div>
@@ -671,6 +674,168 @@ async function dashStartBot() {
     S.booting = false;
     if (btn) { btn.disabled = false; btn.textContent = '▶ Bật bot'; }
   }
+}
+
+/* ── TẮT BOT AN TOÀN (ngay trên panel, không phải mở trang cổng) ────
+   Ba điều kiện, cố ý khác hẳn nút ▶ Bật bot:
+     1. CHỈ hiện khi đã ĐĂNG NHẬP panel (xem `canStopBot`) — trang công khai
+        không có nút này;
+     2. LUÔN hỏi lại mã cổng/mật khẩu cổng trước khi tắt. Web công khai
+        không được tắt bot bằng một cú bấm: nếu ai đó mượn được phiên panel
+        trong trình duyệt, họ vẫn KHÔNG có bí mật của cổng;
+     3. cổng dừng dịch vụ bằng `bootout`/`systemctl stop` chứ không `kill` —
+        plist có KeepAlive nên giết tiến trình là launchd bật lại ngay.
+   Trả {ok, message, cancelled?, needToken?} — cùng khuôn với startBotViaGate. */
+async function stopBotViaGate() {
+  const url = gateUrl();
+  const saved = gateCfg().token.trim();
+  const typed = window.prompt(
+    '🛑 TẮT BOT — nhập MÃ CỔNG (WEBGATE_TOKEN) hoặc MẬT KHẨU cổng để xác nhận.\n'
+    + (saved ? 'Để trống = dùng mã đã lưu trên máy này.'
+             : 'Máy này chưa lưu mã — bắt buộc nhập (cổng: ' + url + ').'),
+    '');
+  if (typed === null) return { cancelled: true, ok: false };
+  const code = String(typed || '').trim() || saved;
+  if (!code) {
+    return { ok: false, needToken: true,
+             message: 'Cần MÃ CỔNG hoặc MẬT KHẨU cổng mới tắt được bot — '
+                      + 'lấy trong deploy/zalobot.env của máy chạy bot.' };
+  }
+  if (!window.confirm('Tắt bot ngay? Panel sẽ mất số liệu cho tới khi bật lại.\n'
+                      + 'Cổng: ' + url)) {
+    return { cancelled: true, ok: false };
+  }
+  let r;
+  try {
+    r = await fetch(url + '/api/bot/stop',
+      { method: 'POST', mode: 'cors', credentials: 'omit', cache: 'no-store',
+        headers: { 'X-WebGate-Token': code } });
+  } catch (e) {
+    return { ok: false, net: true,
+             message: 'Không gọi được cổng ' + url + ' (' + String((e && e.message) || e) + ')'
+                      + ' — kiểm tra cổng còn chạy không.' };
+  }
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401) {
+    return { ok: false, needToken: true,
+             message: 'Cổng từ chối: mã cổng/mật khẩu không đúng. '
+                      + 'Kiểm tra WEBGATE_TOKEN / WEBGATE_PASS trong deploy/zalobot.env.' };
+  }
+  if (!r.ok || j.ok === false) {
+    return { ok: false, message: j.message || ('Cổng trả lỗi ' + r.status) };
+  }
+  // Nhớ mã vừa đúng: lúc bot tắt, đọc log cổng (/api/bot/log) cũng cần nó.
+  saveGateCfg(url, code);
+  return { ok: true, message: String(j.message || '🔴 Đã tắt bot.') };
+}
+/* Chờ bot NGỪNG trả lời — đối xứng với `waitBotUp`. Tắt dịch vụ mất ~1–3s;
+   thấy im lặng mới nói "đã tắt", không đoán. */
+async function waitBotDown(onTick, maxMs) {
+  const limit = maxMs || 20000, t0 = Date.now();
+  let n = 0;
+  while (Date.now() - t0 < limit) {
+    if (!(await pingBot())) return true;
+    n++;
+    if (typeof onTick === 'function') onTick((Date.now() - t0) / 1000);
+    await new Promise(s => setTimeout(s, n <= 4 ? 500 : 1200));
+  }
+  return !(await pingBot());
+}
+/* Nút 🛑 trên Dashboard: hỏi mã → gọi cổng → chờ panel im → vẽ lại card TẮT
+   (kèm log cổng ở dưới, để biết ngay vì sao). */
+async function dashStopBot() {
+  const btn = document.getElementById('dashstop');
+  const say = t => { const m = document.getElementById('dashstopmsg'); if (m) m.textContent = t; };
+  S.booting = true;              // đừng để paintLive/tick vẽ số liệu cũ xen vào
+  try {
+    const res = await stopBotViaGate();
+    if (res.cancelled) return;
+    if (!res.ok) { say(res.message); toast(res.message, 'r'); return; }
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ đang tắt…'; }
+    say(res.message);
+    const off = await waitBotDown(s => {
+      say('⏳ Đang tắt bot… ' + s.toFixed(1) + 's');
+      if (btn) btn.textContent = '⏳ ' + s.toFixed(1) + 's';
+    }, 20000);
+    S.botUp = false;             // bot tắt là sự thật ĐÃ biết, không chờ suy ra
+    S.ov = null;                 // số liệu cũ vô nghĩa → đừng vẽ lại
+    S.gdlog = null;              // log cũ (lúc bot còn sống) cũng phải đọc lại
+    await refresh();
+    draw();                      // → card TẮT + log cổng ngay trên Dashboard
+    say(off ? '🔴 Bot đã tắt hẳn — log cổng ở dưới.'
+            : '🔴 Cổng nhận lệnh tắt nhưng panel vẫn trả lời — kiểm tra lại ở trang cổng.');
+    toast(off ? '🔴 Đã tắt bot' : '🔴 Đã gửi lệnh tắt — panel chưa ngừng trả lời',
+          off ? 'ok' : 'r');
+  } finally {
+    S.booting = false;
+    if (btn) { btn.disabled = false; btn.textContent = '🛑 Tắt bot an toàn'; }
+  }
+}
+/* Nút tắt chỉ thuộc về PHIÊN ĐĂNG NHẬP (S.token): panel công khai ở Pages
+   không có nút nào để tắt bot, kể cả khi bot đang chạy. */
+function canStopBot() { return !!S.token && S.botUp !== false; }
+
+/* ── LOG CỦA CỔNG (hiện NGAY trên card Dashboard khi bot tắt) ────────
+   Bot tắt ⇒ panel API chết theo, không còn gì để đọc. Thứ duy nhất còn sống
+   là CỔNG webgate: nó đọc 20 dòng cuối DATA/bot.log và giữ sổ sự kiện (ai
+   tắt, lúc nào, lệnh bật có lỗi không). Trước đây muốn biết "bot chết vì
+   sao" phải sang tab khác mở trang cổng — giờ nằm ngay dưới card TẮT. */
+const GATE_LOG_TTL = 20000;    // 20s — tick 4s KHÔNG được thành 1 request/4s
+function gateLogStale() {
+  return !S.gdlog || (Date.now() - (S.gdlogAt || 0)) > GATE_LOG_TTL;
+}
+async function fetchGateLog() {
+  const url = gateUrl(), tok = gateCfg().token.trim();
+  const hdrs = tok ? { 'X-WebGate-Token': tok } : {};
+  try {
+    const r = await fetch(url + '/api/bot/log',
+      { method: 'GET', mode: 'cors', credentials: 'omit', cache: 'no-store',
+        headers: hdrs });
+    const j = await r.json().catch(() => null);
+    if (r.status === 401) return { error: 'needToken' };
+    if (!j) return { error: 'Cổng ' + url + ' trả về thứ không phải JSON (HTTP ' + r.status + ').' };
+    if (j.ok === false) return { error: j.text || j.message || 'Cổng không đọc được log.' };
+    return j;
+  } catch (e) {
+    return { error: 'Không gọi được cổng ' + url
+                    + ' (' + String((e && e.message) || e) + ') — cổng có thể đang tắt.' };
+  }
+}
+/* Nội dung khung log — dựng từ cache nên draw() lại cũng không nháy màn hình. */
+function gateLogBody() {
+  const j = S.gdlog;
+  if (!j) return '<div class="hint">Chưa đọc log — bấm 🔄 Tải lại.</div>';
+  if (j.error === 'needToken') {
+    return '<div class="hint">🔒 Cổng yêu cầu MÃ CỔNG để đọc log — dán mã '
+      + '(hoặc mật khẩu cổng) vào ô <span class="mono">Mã cổng</span> ở trên rồi bấm 🔄 Tải lại.</div>';
+  }
+  if (j.error) return '<div class="hint">⚠️ ' + esc(j.error) + '</div>';
+  const ev = (j.events || []).slice(-6);
+  const rows = String(j.text || '').split('\n').slice(-16);
+  const name = String(j.path || 'DATA/bot.log').split('/').slice(-1)[0];
+  const pre = 'white-space:pre-wrap;word-break:break-word;margin:0;font-size:11.5px;line-height:1.45;overflow:auto';
+  return (ev.length
+      ? '<div class="hint" style="margin-bottom:5px">🕒 Sự kiện cổng (mới nhất ở dưới):</div>'
+        + '<pre class="mono" style="' + pre + ';max-height:140px;margin-bottom:10px">'
+        + esc(ev.join('\n')) + '</pre>'
+      : '')
+    + '<div class="hint" style="margin-bottom:5px">📄 ' + esc(name) + ' · '
+    + num(j.lines || rows.length) + ' dòng cuối:</div>'
+    + '<pre class="mono" style="' + pre + ';max-height:260px">'
+    + esc(rows.join('\n') || '(log trống)') + '</pre>';
+}
+async function loadGateLog(force, id) {
+  const sel = '#' + (id || 'gdlog');
+  const box = $(sel);
+  if (!force && !gateLogStale()) { if (box) box.innerHTML = gateLogBody(); return; }
+  if (box) box.innerHTML = '<div class="hint">⏳ Đang đọc log từ cổng '
+    + esc(gateUrl()) + '…</div>';
+  S.gdlog = await fetchGateLog();
+  S.gdlogAt = Date.now();
+  const el = $(sel);
+  if (el) el.innerHTML = gateLogBody();
+  const at = $('#gdlogat');
+  if (at) at.textContent = 'đọc lúc ' + new Date().toLocaleTimeString('vi-VN');
 }
 
 /* ── Kho dữ liệu dựng sẵn (repo API-ZALO) ───────────────────────── */
@@ -1084,7 +1249,19 @@ function dashOff() {
              onchange="saveGateCfg((document.getElementById('gdurl')||{}).value, this.value)">
       <div class="hint" style="margin-top:8px">Điện thoại: mở thẳng
         <span class="mono">${esc(g)}</span> (cùng mạng Wi-Fi) rồi bấm ▶ là vào được panel.</div>
-    </details>`;
+    </details>
+    <div class="card">
+      <h3>📜 Vì sao bot tắt — log từ cổng webgate</h3>
+      <div class="hint" style="margin-bottom:8px">
+        Bot tắt là panel API chết theo, nên đây là dữ liệu do <b>cổng</b> đọc:
+        sự kiện cổng vừa thấy (ai tắt, lúc nào, lệnh bật có lỗi không) +
+        <span class="mono">DATA/bot.log</span> của máy chạy bot.</div>
+      <div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        <button class="btn" type="button" onclick="loadGateLog(true,'gdlog')">🔄 Tải lại</button>
+        <span class="hint mono" id="gdlogat"></span>
+      </div>
+      <div id="gdlog">${gateLogBody()}</div>
+    </div>`;
 }
 V.dash = async () => {
   let d = S.ov;
@@ -1092,8 +1269,13 @@ V.dash = async () => {
     try { d = await api('/api/v4/overview'); S.ov = d; }
     catch (e) { d = null; }
   }
-  // Bot tắt / không gọi được panel → Dashboard phải NÓI RA và cho bấm ▶ ngay.
-  if (!d || S.botUp === false) return dashOff();
+  // Bot tắt / không gọi được panel → Dashboard phải NÓI RA, cho bấm ▶ ngay,
+  // và kèm LOG CỦA CỔNG để biết vì sao bot chết. Đọc sau 30ms vì draw() còn
+  // phải gán innerHTML của card này vào DOM trước đã.
+  if (!d || S.botUp === false) {
+    setTimeout(() => loadGateLog(false, 'gdlog'), 30);
+    return dashOff();
+  }
   const b = d.bot || {}, c = d.cache || {}, l = d.latency || {}, t = d.ttl || {};
   const warn = [];
   if (d.stale) warn.push(['r', 'Bot đang chạy code cũ', 'File API mới hơn lúc tiến trình khởi động — khởi động lại bot để nạp thay đổi.']);
@@ -1151,7 +1333,14 @@ V.dash = async () => {
         <button class="btn" onclick="go('cmds')">⌘ Bật/tắt lệnh</button>
         <button class="btn" onclick="selfCheck()">🩺 Chẩn đoán panel</button>
         <button class="btn" onclick="census()">🧭 Bản đồ API</button>
-      </div></div>`;
+        ${canStopBot() ? `<button class="btn dgr" id="dashstop" type="button"
+          onclick="dashStopBot()" title="Dừng DỊCH VỤ bot qua cổng webgate (không kill) — hỏi mã cổng/mật khẩu cổng">🛑 Tắt bot an toàn</button>` : ''}
+      </div>
+      ${canStopBot() ? `<div class="hint" id="dashstopmsg" style="margin-top:8px">
+        Tắt qua cổng (systemd/launchd dừng dịch vụ, không <span class="mono">kill</span>) —
+        panel sẽ hết số liệu tới khi bật lại. Nút này chỉ có khi <b>đã đăng nhập</b>;
+        trang công khai không tắt được bot.</div>` : ''}
+    </div>`;
 };
 
 V.latency = async () => {
@@ -2063,6 +2252,10 @@ V.term = async () => {
         <span class="mono">python3 main.py</span> ở đây cũng được chuyển sang đó.</div>
       <button class="btn pri" style="margin-top:8px" onclick="termStartBot('python3 main.py')">
         ▶ Bật bot</button>
+      <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:8px">
+        <button class="btn" type="button" onclick="loadGateLog(true,'tgdlog')">📜 Xem log cổng</button>
+      </div>
+      <div id="tgdlog"></div>
     </div></div>` : (d.enabled ? '' : `
     <div class="alert r" style="margin-bottom:12px"><span>🔒</span><div>
       <b>Terminal đang tắt</b>
@@ -2073,6 +2266,7 @@ V.term = async () => {
       <button class="btn" style="margin-top:8px" onclick="termEnable()">🔓 Bật terminal cho panel này</button>
     </div></div>`);
   setTimeout(termPaint, 20);
+  if (off) setTimeout(() => loadGateLog(false, 'tgdlog'), 30);
   return `
     ${warn}
     <div class="card" style="margin-bottom:12px">
@@ -2292,16 +2486,25 @@ V.web = async () => {
                <span class="mono">${esc(d.published_url)}</span>${d.published_ts ? ` (đổi <b>${new Date(d.published_ts*1000).toLocaleString('vi-VN')}</b>)` : ''} — ghim lại để cập nhật.</div>` : ''}
              <input class="i mono" id="wpub" placeholder="https://may-bot.example.ts.net"
                style="font-size:12.5px;margin-top:8px">
-             <div class="row" style="margin-top:8px">
-               <button class="btn" onclick="webPublic(document.getElementById('wpub').value)">🔐 Ghim địa chỉ</button></div>
-             <div class="hint">Tailscale: <span class="mono">tailscale serve --bg ${num(d.port)}</span>
-               rồi dùng tên miền <span class="mono">*.ts.net</span> — hoặc domain +
-               reverse proxy của bạn. Sau khi ghim, bot tự công bố địa chỉ này lên
-               kho dữ liệu để panel ở Pages tự tìm ra (không cần nhập gì nữa).</div>`}
+             <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:8px">
+               <button class="btn" onclick="webPublic(document.getElementById('wpub').value)">🔐 Ghim địa chỉ</button>
+               <button class="btn pri" onclick="webAutoPin(this)" title="Bot tự dựng tailscale serve rồi ghim địa chỉ https của tailnet">🛰 Tự ghim bằng Tailscale</button></div>
+             <div id="wauto"></div>
+             <div class="hint" style="margin-top:8px">Máy đã cài Tailscale thì bấm
+               <b>🛰 Tự ghim</b> là xong: bot tự chạy
+               <span class="mono">tailscale serve --bg --https=443 http://127.0.0.1:${num(d.port)}</span>
+               rồi ghim <span class="mono">https://&lt;tên-máy&gt;.&lt;tailnet&gt;.ts.net</span>.
+               <!-- Cũng chạy tự động mỗi lần bot khởi động (ZALOBOT_AUTOPIN=0 để tắt) -->
+               Chưa có Tailscale thì dùng domain + reverse proxy của bạn. Sau khi ghim,
+               bot tự công bố địa chỉ lên kho dữ liệu để panel ở Pages tự tìm ra
+               (không cần nhập gì nữa).</div>`}
       </div>
       <div class="card"><h3>Điện thoại</h3>
         <div class="stat" style="font-size:18px">⌘web qr</div>
-        <div class="hint">gõ trong Zalo — bot gửi QR quét là vào thẳng panel kèm địa chỉ bot</div></div>
+        <div class="hint">gõ trong Zalo — bot gửi QR quét là vào thẳng panel kèm địa chỉ bot
+          (điện thoại cùng Wi-Fi)</div>
+        <div class="hint" style="margin-top:8px">Bot tắt mà vẫn muốn bật/tắt:
+          <span class="mono">⌘web qr gate</span> — QR mở thẳng trang cổng (24/7).</div></div>
       <div class="card"><h3>API v4</h3><div class="stat">${num(d.endpoints)}<small> endpoint</small></div>
         <div class="hint">cổng ${num(d.port)} · SPA một file</div></div>
       <div class="card"><h3>Terminal</h3><div class="stat" style="font-size:18px">${S.termState && S.termState.enabled ? 'sẵn sàng' : 'xem tab →'}</div>
@@ -2328,6 +2531,27 @@ V.web = async () => {
         panel nằm ở địa chỉ Pages ở trên.</div></div>`;
 };
 
+/* TỰ GHIM địa chỉ https bằng Tailscale (một cú bấm).
+   Vì sao cần: máy đã cài Tailscale sẵn — thay vì bắt người dùng tự chạy
+   `tailscale serve` rồi tự chép tên miền *.ts.net vào ô bên trên, bot làm
+   hết: dựng serve → ghim → công bố lên kho dữ liệu. Bản Pages TRẦN (không
+   ?api=) tự dò ra bot, điện thoại chỉ cần tài khoản + mật khẩu. */
+async function webAutoPin(btn) {
+  const old = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ đang dựng https…'; }
+  try {
+    const d = await api('/api/v4/web/autopin', { method: 'POST' });
+    toast(d.ok ? ('🔐 ' + (d.url || 'đã ghim địa chỉ https'))
+               : ('🛰 ' + (d.message || 'Chưa ghim được địa chỉ https')),
+          d.ok ? 'g' : 'r');
+    if (d.ok) { draw(); return; }
+    // Thất bại → nói rõ vì sao ngay trong card (toast 3,6s là quá ngắn để đọc
+    // thông báo của tailscale, mà lỗi hay gặp nhất là "daemon chưa chạy").
+    const box = $('#wauto');
+    if (box) box.innerHTML = '<div class="hint">⚠️ ' + esc(d.message || '') + '</div>';
+  } catch (e) { toast('🔴 ' + e.message, 'r'); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = old; } }
+}
 /* Ghim/xoá địa chỉ HTTPS công khai — để panel ở Pages điều khiển được bot
    từ ngoài mạng LAN (trình duyệt chặn https→http nên bắt buộc phải https). */
 async function webPublic(url) {
@@ -2416,9 +2640,10 @@ async function draw() {
 /* Thanh trạng thái trên cùng — nói ĐÚNG 3 trạng thái, không tô hồng:
    • không gọi được panel API → hiện LUÔN nút ▶ Bật bot (chính là chỗ người
      dùng tìm "bật/tắt bot" khi vào thẳng panel bằng phiên đã nhớ);
-   • gọi được nhưng bot chưa nghe sự kiện Zalo → chấm đỏ, không có nút tắt
-     (web công khai chỉ được BẬT — xem test_panel_khong_co_nut_tat_bot);
-   • gọi được + đang nghe → chấm xanh. */
+   • gọi được nhưng bot chưa nghe sự kiện Zalo → chấm đỏ;
+   • gọi được + đang nghe → chấm xanh.
+   Nút ■ Tắt bot nằm Ở THANH TRÊN (id=topstop) chứ không trong đây: nó chỉ
+   hiện với phiên đã đăng nhập và luôn hỏi mã cổng/mật khẩu (canStopBot). */
 function paintLive(b) {
   const el = $('#live');
   if (!el || S.booting) return;             // đang bấm ▶ → đừng đè mất đồng hồ
@@ -2449,6 +2674,9 @@ async function refresh() {
   $('#wr').textContent = (S.role || '') + ' · ' + (b.uptime || '—');
   $('#av').textContent = (S.user || 'A')[0].toUpperCase();
   paintLive(b);
+  // ■ Tắt bot trên thanh trên cùng: chỉ khi đã đăng nhập + bot đang sống.
+  const topstop = $('#topstop');
+  if (topstop) topstop.style.display = canStopBot() ? '' : 'none';
   $('#stamp').textContent = 'v4 · ' + new Date().toLocaleTimeString('vi-VN');
   // badge cảnh báo trên sidebar
   const l = (S.ov||{}).latency || {};
@@ -2826,7 +3054,10 @@ window.addBotSubmit = addBotSubmit;
 window.termRun = termRun; window.termSpawn = termSpawn; window.termTail = termTail;
 window.termQuick = termQuick; window.termClear = termClear; window.termEnable = termEnable;
 window.webPublic = webPublic; window.checkBotHeart = checkBotHeart;
+window.webAutoPin = webAutoPin;
 window.bootBot = bootBot; window.gateUrl = gateUrl; window.dashStartBot = dashStartBot;
+window.dashStopBot = dashStopBot; window.stopBotViaGate = stopBotViaGate;
+window.loadGateLog = loadGateLog; window.canStopBot = canStopBot;
 /* Tay cầm gỡ lỗi: mở console gõ `ZB.S` để xem trạng thái, `ZB.api('/api/status')` để gọi thử. */
 window.ZB = { S, api, go, draw, refresh, toast, start,
               apiBase: () => S.apiBase, setApiBase };
