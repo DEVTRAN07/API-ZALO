@@ -326,7 +326,8 @@ details.catsec>summary .tag{margin-left:auto}
     <!-- BOT ĐANG TẮT? Bật ngay tại đây.
          Panel ở Pages là web TĨNH — bot tắt thì không còn gì trả lời (panel
          API sống TRONG tiến trình bot). Việc bật lại thuộc về CỔNG webgate
-         (deploy/webgate.py) — dịch vụ nhỏ chạy 24/7 độc lập với bot. -->
+         (web/webgate/webgate.py) — dịch vụ nhỏ chạy 24/7 độc lập với bot,
+         vào bằng đường dẫn gọn http://<ip>:8080/webgate. -->
     <div id="bootwrap" style="display:none;margin-top:12px">
       <button class="btn full" id="lboot" type="button"
               style="justify-content:center;width:100%">▶ Bật bot</button>
@@ -511,8 +512,9 @@ function apiBlocked(url) {
 /* ── BẬT BOT NGAY TRÊN PANEL (khi bot đã tắt) ────────────────────────
    Vì sao phải có: panel API sống TRONG tiến trình bot (src/api/server.py),
    nên bot tắt là panel tắt theo — không còn gì để nhận lệnh bật lại.
-   Việc bật lại vì thế thuộc về CỔNG webgate (deploy/webgate.py): một dịch
-   vụ nhỏ chạy 24/7, bot chết vẫn sống. Nút dưới đây gọi thẳng cổng đó.
+   Việc bật lại vì thế thuộc về CỔNG webgate (web/webgate/webgate.py): một
+   dịch vụ nhỏ chạy 24/7, bot chết vẫn sống, địa chỉ gọn
+   http://<ip>:8080/webgate. Nút dưới đây gọi thẳng cổng đó.
    Cổng phải CHO PHÉP origin này điều khiển — cách duy nhất là WEBGATE_TOKEN
    (dán cùng mã vào ô "Mã cổng"); cookie phiên của cổng không đi theo
    request cross-site nên đừng trông vào nó. */
@@ -572,10 +574,24 @@ async function startBotViaGate() {
   const panelUp = /đang chạy sẵn|đã lên sau|Đã bật bot/i.test(msg);
   return { ok: true, panelUp, message: msg || 'Đã gửi lệnh bật bot…' };
 }
+/* Cổng phục vụ ở ĐƯỜNG DẪN GỌN `/webgate` (WEBGATE_PATH) — link dễ nhớ,
+   không phải "cổng 8080 trần". Người dùng có thể dán kiểu gì cũng được:
+   `http://192.168.1.13:8080`, `.../webgate`, có/không dấu / cuối — hàm này
+   chuẩn hoá về một dạng duy nhất. Đường dẫn trần vẫn chạy (link cũ không
+   chết) nên không cần đổi gì trong localStorage của máy đang dùng. */
+function gateNorm(u) {
+  const s = String(u || '').trim().replace(/\/+$/, '');
+  if (!s) return s;
+  try {
+    const p = new URL(s);
+    if (!p.pathname || p.pathname === '/') p.pathname = '/webgate';
+    return (p.origin + p.pathname).replace(/\/+$/, '');
+  } catch (e) { return s; }
+}
 function saveGateCfg(url, token) {
   try {
     localStorage.setItem('zb_gate',
-      JSON.stringify({ url: String(url || '').trim(), token: String(token || '') }));
+      JSON.stringify({ url: gateNorm(url), token: String(token || '') }));
   } catch (e) {}
 }
 function gateDefault() {
@@ -584,12 +600,12 @@ function gateDefault() {
   const h = location.hostname;
   if (location.protocol === 'http:' && h &&
       !/^(localhost|127\.0\.0\.1|\[?::1\]?)$/i.test(h)) {
-    return location.protocol + '//' + h + ':8080';
+    return location.protocol + '//' + h + ':8080/webgate';
   }
-  return 'http://127.0.0.1:8080';
+  return 'http://127.0.0.1:8080/webgate';
 }
 function gateUrl() {
-  return (gateCfg().url || gateDefault()).replace(/\/+$/, '');
+  return gateNorm(gateCfg().url || gateDefault());
 }
 function showBoot(on) {
   const w = $('#bootwrap');
@@ -1492,8 +1508,9 @@ V.gif = async () => {
       </div>
       <div class="hint" style="margin-top:11px">Ảnh dưới là card THẬT của lệnh đó —
         dựng bằng đúng pipeline bot dùng khi trả lời, nên <b>font được vẽ thẳng vào ảnh</b>,
-        không phải lớp chữ của trình duyệt. 66 ảnh đã dựng sẵn trên disk (DATA/gif_studio/),
-        mở tab là thấy ngay, không chờ render. Nếu ảnh thay đổi, chạy
+        không phải lớp chữ của trình duyệt. 66 ảnh đã dựng sẵn nằm trên <b>kho dữ liệu</b>
+        (repo API-ZALO) — máy chủ bot KHÔNG giữ bản sao, trình duyệt được chuyển thẳng
+        sang đó nên mở tab là thấy ngay, không chờ render. Nếu ảnh thay đổi, chạy
         <span class="mono">.venv/bin/python tools/build_gif_studio.py --regen</span>.
         Nếu thiếu file, trình duyệt tự fallback sang /api/gif/card/demo.</div></div>`;
 };
