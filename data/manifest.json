@@ -1,9 +1,33 @@
 {
  "version": 1,
- "generated": "2026-10-08T06:20:17+0700",
- "count": 573,
- "bytes": 34645013,
+ "generated": "2026-10-09T08:25:48+0700",
+ "count": 579,
+ "bytes": 60621945,
  "files": {
+  "fonts/UTM Avo.ttf": {
+   "sha256": "7b277458036e6680e115ee58317da527ed2319b1d2c65d7a71c01b320a2bbadc",
+   "size": 39308
+  },
+  "fonts/UTM AvoBold_Italic.ttf": {
+   "sha256": "e5a19e772ba004ddbe452a6623a0e3ba5725d0ccf516bd07fdc099812f5ab3e7",
+   "size": 41128
+  },
+  "fonts/arial unicode ms.otf": {
+   "sha256": "356908f8bb8bd9d4496b8e4a86e2b5b0695c0d822602efd07fec77930cd68c15",
+   "size": 23218396
+  },
+  "fonts/arial.ttf": {
+   "sha256": "baa251526d6862712a58e613ef451d8a2b60482142ec6aab1d47fb8e23e21a7c",
+   "size": 1045960
+  },
+  "fonts/dejavu-sans.book.ttf": {
+   "sha256": "08ca98e69d9d8fa1065584b4f9ab7d49b6205abea6572b90e171b254845bb990",
+   "size": 741536
+  },
+  "fonts/emoji.ttf": {
+   "sha256": "5ac83635aa9067fc0573a04ce603c8c0697671d49d895e2855347c905f3fd09f",
+   "size": 890604
+  },
   "gif_studio/ack.gif": {
    "sha256": "f51a720fb86e519336025e0e1da603b45c25d26570f96f058e097a3128e144e8",
    "size": 99801
