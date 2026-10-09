@@ -545,7 +545,12 @@ function looksLikeStartBot(cmd) {
 /* Lõi dùng chung: NÚT ▶ Bật bot ở trang đăng nhập và LỆNH trong Terminal đều
    gọi đúng một API của cổng. Trả {ok, message, net?, needToken?}. */
 async function startBotViaGate() {
-  const url = gateUrl(), tok = gateCfg().token.trim();
+  const url = gateUrl();
+  /* Panel CHƯA có phiên (màn hình đăng nhập) thì bot không trao mã được —
+     giữ nguyên hành vi cũ (kêu dán mã). Đang đăng nhập mà chưa lưu mã thì
+     lấy từ bot cho đủ, khỏi bắt người dùng mò file env. */
+  let tok = gateCfg().token.trim();
+  if (!tok && S.token) tok = await gateCodeFromBot();
   let r;
   /* Mã cổng gửi qua HEADER, không nhét vào URL: URL còn nằm lại trong log
      của cổng và lịch sử trình duyệt — log đọc được là vào được bot. */
@@ -696,40 +701,84 @@ async function dashStartBot() {
    Ba điều kiện, cố ý khác hẳn nút ▶ Bật bot:
      1. CHỈ hiện khi đã ĐĂNG NHẬP panel (xem `canStopBot`) — trang công khai
         không có nút này;
-     2. LUÔN hỏi lại mã cổng/mật khẩu cổng trước khi tắt. Web công khai
-        không được tắt bot bằng một cú bấm: nếu ai đó mượn được phiên panel
-        trong trình duyệt, họ vẫn KHÔNG có bí mật của cổng;
+     2. KHÔNG hỏi tay khi chứng minh được bằng bí mật đã có: mã lưu trên
+        máy này, hoặc lấy từ chính bot qua /api/v4/web/gate_code (panel đang
+        đăng nhập = đã là chủ máy). Hỏi mật khẩu/mã cổng chỉ là DỰ PHÒNG cuối
+        (bot tắt, máy mới, chưa từng lưu mã) — vẫn còn ô confirm trước khi
+        tắt;
      3. cổng dừng dịch vụ bằng `bootout`/`systemctl stop` chứ không `kill` —
         plist có KeepAlive nên giết tiến trình là launchd bật lại ngay.
    Trả {ok, message, cancelled?, needToken?} — cùng khuôn với startBotViaGate. */
+
+/* Lấy MÃ CỔNG từ chính bot — panel đã đăng nhập nên bot trao mã, không cần
+   người dùng đi tìm `deploy/zalobot.env`. Vừa lấy là lưu vào `zb_gate` trên
+   máy này: các lần sau (kể cả khi bot đã tắt, đọc log cổng) dùng lại mã cũ.
+   Bot TẮT thì endpoint này cũng chết → trả '' và luồng hỏi tay giữ nguyên. */
+async function gateCodeFromBot() {
+  try {
+    const d = await api('/api/v4/web/gate_code');
+    const tok = String((d && d.token) || '').trim();
+    if (!tok) return '';
+    // Panel mở từ Pages thì gateDefault() là host của Pages (sai) — bot trả
+    // địa chỉ thật của cổng trên LAN; máy nào đã tự lưu địa chỉ thì giữ nguyên.
+    // Panel mở NGAY TRÊN máy bot (loopback) thì dùng `local_url`: đi thẳng
+    // 127.0.0.1 thay vì vòng qua IP LAN (IP đổi, tường lửa chặn, hoặc cổng chỉ
+    // nghe loopback) — và origin loopback luôn được cổng cho phép.
+    const cur = gateCfg();
+    const loop = /^(localhost|127\.0\.0\.1|\[?::1\]?)$/i
+                     .test(String(location.hostname || ''));
+    const fromBot = (loop && String((d && d.local_url) || ''))
+                    || String((d && d.url) || '');
+    saveGateCfg(cur.url || fromBot || gateUrl(), tok);
+    return tok;
+  } catch (e) { return ''; }
+}
+
 async function stopBotViaGate() {
+  // 1) Có bí mật trong tay thì ĐỪNG hỏi: mã lưu sẵn, hoặc xin từ bot.
+  let code = gateCfg().token.trim();
+  if (!code) code = await gateCodeFromBot();
+  // Đọc địa chỉ SAU khi xin mã: gateCodeFromBot có thể vừa lưu địa chỉ đúng
+  // của cổng (panel mở từ Pages thì gateDefault() đoán sai host).
   const url = gateUrl();
-  const saved = gateCfg().token.trim();
-  const typed = window.prompt(
-    '🛑 TẮT BOT — nhập MÃ CỔNG (WEBGATE_TOKEN) hoặc MẬT KHẨU cổng để xác nhận.\n'
-    + (saved ? 'Để trống = dùng mã đã lưu trên máy này.'
-             : 'Máy này chưa lưu mã — bắt buộc nhập (cổng: ' + url + ').'),
-    '');
-  if (typed === null) return { cancelled: true, ok: false };
-  const code = String(typed || '').trim() || saved;
   if (!code) {
-    return { ok: false, needToken: true,
-             message: 'Cần MÃ CỔNG hoặc MẬT KHẨU cổng mới tắt được bot — '
-                      + 'lấy trong deploy/zalobot.env của máy chạy bot.' };
+    // 2) Dự phòng: không có gì để chứng minh → mới hỏi người dùng gõ tay.
+    const typed = window.prompt(
+      '🛑 TẮT BOT — nhập MÃ CỔNG (WEBGATE_TOKEN) hoặc MẬT KHẨU cổng để xác nhận.\n'
+      + 'Máy này chưa lưu mã và bot không trả mã được (cổng: ' + url + ').',
+      '');
+    if (typed === null) return { cancelled: true, ok: false };
+    code = String(typed || '').trim();
+    if (!code) {
+      return { ok: false, needToken: true,
+               message: 'Cần MÃ CỔNG hoặc MẬT KHẨU cổng mới tắt được bot — '
+                        + 'lấy trong deploy/zalobot.env của máy chạy bot.' };
+    }
   }
   if (!window.confirm('Tắt bot ngay? Panel sẽ mất số liệu cho tới khi bật lại.\n'
                       + 'Cổng: ' + url)) {
     return { cancelled: true, ok: false };
   }
+  const post = c => fetch(url + '/api/bot/stop',
+      { method: 'POST', mode: 'cors', credentials: 'omit', cache: 'no-store',
+        headers: { 'X-WebGate-Token': c } });
   let r;
   try {
-    r = await fetch(url + '/api/bot/stop',
-      { method: 'POST', mode: 'cors', credentials: 'omit', cache: 'no-store',
-        headers: { 'X-WebGate-Token': code } });
+    r = await post(code);
   } catch (e) {
     return { ok: false, net: true,
              message: 'Không gọi được cổng ' + url + ' (' + String((e && e.message) || e) + ')'
                       + ' — kiểm tra cổng còn chạy không.' };
+  }
+  if (r.status === 401) {
+    // Mã lưu trên máy có thể đã đổi (env mới, máy khác) — xin mã MỚI từ bot
+    // rồi thử lại đúng một lần; vẫn sai mới buộc nhập tay.
+    const fresh = await gateCodeFromBot();
+    if (fresh && fresh !== code) {
+      code = fresh;
+      try { r = await post(code); } catch (e) { return { ok: false, net: true,
+        message: 'Không gọi được cổng ' + url + ' (' + String((e && e.message) || e) + ')' }; }
+    }
   }
   const j = await r.json().catch(() => ({}));
   if (r.status === 401) {
