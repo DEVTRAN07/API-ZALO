@@ -1,32 +1,276 @@
 {
  "version": 1,
- "generated": "2026-10-09T08:22:58+0700",
- "count": 512,
- "bytes": 56655018,
+ "generated": "2026-10-08T06:20:17+0700",
+ "count": 573,
+ "bytes": 34645013,
  "files": {
-  "fonts/UTM Avo.ttf": {
-   "sha256": "7b277458036e6680e115ee58317da527ed2319b1d2c65d7a71c01b320a2bbadc",
-   "size": 39308
+  "gif_studio/ack.gif": {
+   "sha256": "f51a720fb86e519336025e0e1da603b45c25d26570f96f058e097a3128e144e8",
+   "size": 99801
   },
-  "fonts/UTM AvoBold_Italic.ttf": {
-   "sha256": "e5a19e772ba004ddbe452a6623a0e3ba5725d0ccf516bd07fdc099812f5ab3e7",
-   "size": 41128
+  "gif_studio/aichat.gif": {
+   "sha256": "f4bbcae0ad72a965797c0b7d79d05bc8670fd2da648c5f40bd6e4d320938bcfb",
+   "size": 74122
   },
-  "fonts/arial unicode ms.otf": {
-   "sha256": "356908f8bb8bd9d4496b8e4a86e2b5b0695c0d822602efd07fec77930cd68c15",
-   "size": 23218396
+  "gif_studio/album.gif": {
+   "sha256": "6447ea8a94eb69ccb4eb462f4cf7a550c1aa8a6ea3fca225230a95c4842cf5a4",
+   "size": 77899
   },
-  "fonts/arial.ttf": {
-   "sha256": "baa251526d6862712a58e613ef451d8a2b60482142ec6aab1d47fb8e23e21a7c",
-   "size": 1045960
+  "gif_studio/antispam.gif": {
+   "sha256": "6a8e5fa394d807d4fc440808852521236c09e88974007b439b1ad8a978cac4c7",
+   "size": 74693
   },
-  "fonts/dejavu-sans.book.ttf": {
-   "sha256": "08ca98e69d9d8fa1065584b4f9ab7d49b6205abea6572b90e171b254845bb990",
-   "size": 741536
+  "gif_studio/audiomack.gif": {
+   "sha256": "7d866815eaffe22fc173eac09b4492cd59482da9dd286a55abf3f64b262ace3a",
+   "size": 75613
   },
-  "fonts/emoji.ttf": {
-   "sha256": "5ac83635aa9067fc0573a04ce603c8c0697671d49d895e2855347c905f3fd09f",
-   "size": 890604
+  "gif_studio/autodown.gif": {
+   "sha256": "a9e8fc83f5b578cfbc008c2ba037524b295f1fee849b69bd4a10c49cc1667fdc",
+   "size": 79425
+  },
+  "gif_studio/bot.gif": {
+   "sha256": "76fccce7a8df1224b2044aa8f635dbc596e07957a8089396b9fd084c7e0178fc",
+   "size": 83707
+  },
+  "gif_studio/browser.png": {
+   "sha256": "3a06fe04cc5059bd255ece480a9612742a649cde202e473dd95edb222f9513f0",
+   "size": 6258
+  },
+  "gif_studio/canvas.gif": {
+   "sha256": "df1e89403c2d202dd8e4f276df25d56d395a84cb86fc83c808abd53db9fee6f2",
+   "size": 82929
+  },
+  "gif_studio/cardstyle.gif": {
+   "sha256": "fbf427391c0f0f0a0663c363f53981a952358a8fb9cfd9ca975080f81e185a37",
+   "size": 66862
+  },
+  "gif_studio/cmdmgr.gif": {
+   "sha256": "f3328527e222ee40160639a8f275336af627e0a8f105cb2a78e6385fae1f22d1",
+   "size": 84823
+  },
+  "gif_studio/control.gif": {
+   "sha256": "a9081924d77c9879c373ef2869488e1e95f7e2ec761409b42a1c686cac50d0b6",
+   "size": 88481
+  },
+  "gif_studio/creategroup.gif": {
+   "sha256": "f3aed8f6115f9673e1512af050e361139ac2674f516ba8103497f52f14eee91f",
+   "size": 79906
+  },
+  "gif_studio/delete.gif": {
+   "sha256": "8ac1d3f9177e24b330de13fbae900589d08f6d899d338446048ffb343c88e188",
+   "size": 88821
+  },
+  "gif_studio/editstyle.gif": {
+   "sha256": "6b54e6b24edb08b0e0229423d6aff1cf7473cf978a807d4d30ead74ecf599b19",
+   "size": 84206
+  },
+  "gif_studio/emojimix.gif": {
+   "sha256": "3ce6687347292c226b3791da86729fe9b2a4c00d22766495087b82ca55ab6fad",
+   "size": 70371
+  },
+  "gif_studio/encrypt.gif": {
+   "sha256": "39e3b0f7b01b0ef04c6d8098d7fb1633971742c559f28588eaa007a63bea09ae",
+   "size": 84400
+  },
+  "gif_studio/feedback.gif": {
+   "sha256": "8ec21d265635ee336ef89fd05b471a25c5a708e48ca18912d3fdf5c0ccf9c9f5",
+   "size": 72668
+  },
+  "gif_studio/files.gif": {
+   "sha256": "4e6f4c9df826768697652ee6ba6aa51bf660a407c48ce519d2ba29c0c1653d4f",
+   "size": 74454
+  },
+  "gif_studio/getlink.gif": {
+   "sha256": "a6cf67e83e90a216fbd0d753de42108fa17f4fc782eba55d1f176d2be9b90c77",
+   "size": 64468
+  },
+  "gif_studio/getvd.jpg": {
+   "sha256": "afe0adc7cbd315251b1c470e791f7f0ffc7cd24a3756cd296451df7653fae296",
+   "size": 4162
+  },
+  "gif_studio/getvoice.gif": {
+   "sha256": "1e70c1108af6066242e675743159198caca0b47bd98a3eb29d261d58305df296",
+   "size": 61763
+  },
+  "gif_studio/gif.gif": {
+   "sha256": "30b2d912fe41a19dc2f00ab77a6a3530141e868951115cf58d57e3b87e0f12b4",
+   "size": 76230
+  },
+  "gif_studio/grantadmin.gif": {
+   "sha256": "ddd21b24392f86dda16b142fdd7a56ef28fc06ffad65abb12091955bcef81159",
+   "size": 75509
+  },
+  "gif_studio/groupset.gif": {
+   "sha256": "eb9d9df6580db7d29adca9d970300d2ea602ca7949cafde751dc1e8a08f70fe9",
+   "size": 84003
+  },
+  "gif_studio/help.gif": {
+   "sha256": "1b932902b3de6e07943f58a187a798dc631f467ab3f34805d009f42d5978226d",
+   "size": 88744
+  },
+  "gif_studio/imgmode.gif": {
+   "sha256": "70997516656c5873ca067055cb8c5e284f63161bfe44eef25169f946962d5fc3",
+   "size": 84085
+  },
+  "gif_studio/infofb.gif": {
+   "sha256": "82750224a59c0ccd6ddd1b81aee30539e1142ffb56c1d2b4eb5004ba2cda8f8a",
+   "size": 86869
+  },
+  "gif_studio/infoig.gif": {
+   "sha256": "9ab1e6d26e6d0b59365334afbb4a063192d7c962c4c62e108ee007eb8a189905",
+   "size": 83761
+  },
+  "gif_studio/infott.gif": {
+   "sha256": "9abd5b413b57d77c44e933144678e1030a06532b92120a35e8567af73c506277",
+   "size": 78079
+  },
+  "gif_studio/join.gif": {
+   "sha256": "bcb32a3e35454dd1e52d401512908f75a17a1bb508dc408a2c92e673fafacb6e",
+   "size": 73281
+  },
+  "gif_studio/loveqr.png": {
+   "sha256": "0d2638da96d2f5cb6e8bd8cf69455dfef28d809870c3961bb8b7069dc53c6da1",
+   "size": 4189
+  },
+  "gif_studio/lyric.gif": {
+   "sha256": "73f7fb72184765eb546bed3d1e4e9f8996486e17b4c10a7af7ae4f5edc36c1d6",
+   "size": 61124
+  },
+  "gif_studio/menu.gif": {
+   "sha256": "9b81e87b1056bbfabffcace4209b6400096e434e80fe4c7a4d78a321f673e8f2",
+   "size": 76583
+  },
+  "gif_studio/mysticker.png": {
+   "sha256": "a8aaaabf18389c0ec6f4d260211e1c0e2a929d55de296006ec159bfae1b41c5e",
+   "size": 2796
+  },
+  "gif_studio/nct.jpg": {
+   "sha256": "76ecf3ee40db98896a91acd670a51fb59aea1de2198ae411eb26f34793a83a87",
+   "size": 5320
+  },
+  "gif_studio/pending.gif": {
+   "sha256": "dd1c27ebedbeb5c8a4fd318d911727b97cc5f282a98536856667c3f8f659eee4",
+   "size": 84122
+  },
+  "gif_studio/pin.jpg": {
+   "sha256": "c25e8adc0660d4b041067ef1fc52b022d29ddca12fcddbf719bd1ffcf72e5a22",
+   "size": 4657
+  },
+  "gif_studio/pixel.png": {
+   "sha256": "586380ad3b040c51cbc45f81d5498e62c79d3893ad2f5e1c0f6b5a53f288b97f",
+   "size": 2720
+  },
+  "gif_studio/prefix.gif": {
+   "sha256": "9ebd0d79d9ed6cfa457c36dd9ae2f62f00ff3016e01f0f03332909be5a8e3d32",
+   "size": 72044
+  },
+  "gif_studio/qredit.png": {
+   "sha256": "0d2638da96d2f5cb6e8bd8cf69455dfef28d809870c3961bb8b7069dc53c6da1",
+   "size": 4189
+  },
+  "gif_studio/reset.gif": {
+   "sha256": "46a1d26ea6d29528e68d66db388ffeb61f8f11b9d957b612028f7a0fe991b7a8",
+   "size": 85477
+  },
+  "gif_studio/scl.jpg": {
+   "sha256": "76ecf3ee40db98896a91acd670a51fb59aea1de2198ae411eb26f34793a83a87",
+   "size": 5320
+  },
+  "gif_studio/sendfile.gif": {
+   "sha256": "6030c44b96116e02badb9506f6b1bf795c63289f7e48a71bed905f9abe4075e1",
+   "size": 78980
+  },
+  "gif_studio/sendgif.png": {
+   "sha256": "a32b1d4b40dda7ffc4da21a92ce3f0104fd2255c2e865ec32c7f493236b7d3ab",
+   "size": 2907
+  },
+  "gif_studio/sendlink.gif": {
+   "sha256": "4a655c150da74c37b504920673df825258d22cdf261374b86e2ff89f1e86b984",
+   "size": 64946
+  },
+  "gif_studio/sendsticker.png": {
+   "sha256": "a8aaaabf18389c0ec6f4d260211e1c0e2a929d55de296006ec159bfae1b41c5e",
+   "size": 2796
+  },
+  "gif_studio/setavt.png": {
+   "sha256": "091d2cc72a818cc9ef47f56a0c429634d089e7053ec5e6e1bcf5b61d68173931",
+   "size": 2346
+  },
+  "gif_studio/setavtbox.png": {
+   "sha256": "091d2cc72a818cc9ef47f56a0c429634d089e7053ec5e6e1bcf5b61d68173931",
+   "size": 2346
+  },
+  "gif_studio/setname.gif": {
+   "sha256": "9395500199303063a9515575346b95d1ed6ad94cd88daa441138a0c699eb4c48",
+   "size": 82725
+  },
+  "gif_studio/shared.gif": {
+   "sha256": "23a053b234811fb2f864b357ce789353cedf11ae09d41d1797ab55d58d79edfc",
+   "size": 79479
+  },
+  "gif_studio/spt.jpg": {
+   "sha256": "76ecf3ee40db98896a91acd670a51fb59aea1de2198ae411eb26f34793a83a87",
+   "size": 5320
+  },
+  "gif_studio/stickervd.gif": {
+   "sha256": "74b4690b23a4bcc5e925ddcf28bebb22fc811dbf8294d861b0aee4e65db6941f",
+   "size": 93897
+  },
+  "gif_studio/stk.png": {
+   "sha256": "a8aaaabf18389c0ec6f4d260211e1c0e2a929d55de296006ec159bfae1b41c5e",
+   "size": 2796
+  },
+  "gif_studio/theme.gif": {
+   "sha256": "f24c5e27a08360d4003b39e7f41cf15a8de3f5dff63d6d0e83c3409a5b5a6535",
+   "size": 63943
+  },
+  "gif_studio/ttl.gif": {
+   "sha256": "3e11704ed97654af4b55b84a8a79be436a9e91bc0837561b229dc904b4532f00",
+   "size": 64054
+  },
+  "gif_studio/voice.gif": {
+   "sha256": "df725b93da2f35b5cab0b5222c19d5bb648bf850f0f05ad7cec8bf5b66c50415",
+   "size": 84019
+  },
+  "gif_studio/web.gif": {
+   "sha256": "342d4d061a3341bcb487c60fe75205fc1307ee1057333e58a3e5580fc8f73c9b",
+   "size": 73036
+  },
+  "gif_studio/welcome.gif": {
+   "sha256": "fc9cbd17a3c6f587bf35bef5af8fd76bffd18586e6b05a7796cf1f6fea0c778d",
+   "size": 76963
+  },
+  "gif_studio/ytm.jpg": {
+   "sha256": "76ecf3ee40db98896a91acd670a51fb59aea1de2198ae411eb26f34793a83a87",
+   "size": 5320
+  },
+  "gif_studio/zdebug.gif": {
+   "sha256": "d68cc0d244f0cb0fb84a2ec7c0a5a4c80ec0a6b3f824f948b5d8dc1d8b92f7de",
+   "size": 78138
+  },
+  "gif_studio/zdecode.gif": {
+   "sha256": "0ac5c7b942c51280b49ac0149c754e919d7f7475d8a4632239a1d4007e95eab2",
+   "size": 72379
+  },
+  "gif_studio/zencode.gif": {
+   "sha256": "2a03a117b87abfc99d1d280bdfb8dd1264df07d758925fd65367350821e79ed1",
+   "size": 84272
+  },
+  "gif_studio/zgetkey.gif": {
+   "sha256": "dc5bc630b8a312e82b5b903a393be89d804be68870ea9ecb0b1ebfab52cc06b5",
+   "size": 69686
+  },
+  "gif_studio/zing.jpg": {
+   "sha256": "76ecf3ee40db98896a91acd670a51fb59aea1de2198ae411eb26f34793a83a87",
+   "size": 5320
+  },
+  "gif_studio/zkey.gif": {
+   "sha256": "7692751c413d148a5fc02fd04c3bfffe990f40852d829bf8ac61763492856166",
+   "size": 91903
+  },
+  "gif_studio/zl.gif": {
+   "sha256": "0b6cb4b32edad2da2152648f4431e5a40ca11db95bed0f67758f99a35dcdb5e1",
+   "size": 60422
   },
   "lottie_frames/aurora_h340_28_c6d43ed3/00.webp": {
    "sha256": "d195895b63639dd7e2489e8fa661afd6239aab5f6b43fc9fa5cea41a7910f61f",
