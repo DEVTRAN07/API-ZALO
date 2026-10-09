@@ -1,8 +1,8 @@
 {
  "version": 1,
- "generated": "2026-10-09T08:32:12+0700",
- "count": 579,
- "bytes": 62376672,
+ "generated": "2026-10-09T11:22:24+0700",
+ "count": 581,
+ "bytes": 62622004,
  "files": {
   "fonts/UTM Avo.ttf": {
    "sha256": "7b277458036e6680e115ee58317da527ed2319b1d2c65d7a71c01b320a2bbadc",
@@ -27,6 +27,10 @@
   "fonts/emoji.ttf": {
    "sha256": "5ac83635aa9067fc0573a04ce603c8c0697671d49d895e2855347c905f3fd09f",
    "size": 890604
+  },
+  "gif_studio/4k.gif": {
+   "sha256": "a6add24933d04483163bcb4cc4775e22ef0d783ccb8d892d56118a4d27f0e88b",
+   "size": 131422
   },
   "gif_studio/ack.gif": {
    "sha256": "fef351ac94b2c3036ac3c0e1d0db0e7e30117ce8280a747fc3ba0c2ec6d86fd9",
@@ -195,6 +199,10 @@
   "gif_studio/reset.gif": {
    "sha256": "bd33b3e152bb68e3242aa7c661baaa0f871eb42c976df7044c94a10339c7c22a",
    "size": 119807
+  },
+  "gif_studio/sangtac.gif": {
+   "sha256": "a9af03281a1b3e26e729e7bd5392acb0b46ca0c6218dd8d26df0d48fd927605b",
+   "size": 113910
   },
   "gif_studio/scl.jpg": {
    "sha256": "76ecf3ee40db98896a91acd670a51fb59aea1de2198ae411eb26f34793a83a87",
